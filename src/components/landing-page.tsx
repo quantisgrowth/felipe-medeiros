@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
-  ArrowRight, BarChart3, Bot, BrainCircuit, BriefcaseBusiness, CalendarCheck, Check,
+  ArrowRight, BarChart3, Bot, BrainCircuit, CalendarCheck, Check,
   CheckCircle2, ChevronRight, CircleAlert, Clock3, Database, GitBranch, Linkedin, Mail,
-  Menu, MessageCircle, Network, PhoneCall, Route, Send, Settings2, ShieldCheck, Target,
-  UserRound, UsersRound, Workflow, X, type LucideIcon,
+  Menu, MessageCircle, Network, PhoneCall, Route, Send, ShieldCheck, Target,
+  UsersRound, Workflow, X,
 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
