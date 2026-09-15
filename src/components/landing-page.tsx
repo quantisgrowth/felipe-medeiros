@@ -132,7 +132,7 @@ function Reveal({ children, className = "" }: { children: ReactNode; className?:
     const node = ref.current;
     if (!node) return;
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
+      if (entry?.isIntersecting) {
         setVisible(true);
         observer.disconnect();
       }
@@ -299,7 +299,7 @@ export function LeadForm() {
     const query = new URLSearchParams(window.location.search);
     UTM_KEYS.forEach((key) => { const value = query.get(key); if (value) payload[key] = value.slice(0, 200); });
     try {
-      const webhook = import.meta.env.VITE_LEAD_WEBHOOK_URL as string | undefined;
+      const webhook = import.meta.env["VITE_LEAD_WEBHOOK_URL"] as string | undefined;
       if (webhook) {
         const response = await fetch(webhook, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         if (!response.ok) throw new Error("Webhook indisponível");
