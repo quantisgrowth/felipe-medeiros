@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://felipe-medeiros.lovable.app/sitemap.xml
