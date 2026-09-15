@@ -1,8 +1,8 @@
 export const SITE_CONFIG = {
-  whatsappNumber: "[WHATSAPP_NUMBER]",
+  whatsappNumber: "5515981103345",
   whatsappMessage:
     "Olá, Felipe. Conheci a Implantação Comercial 4.0 e gostaria de analisar minha operação.",
-  email: "[EMAIL]",
+  email: "felipe@quantisgrowth.com.br",
   linkedinUrl: "[LINKEDIN_URL]",
   privacyUrl: "[PRIVACY_URL]",
   termsUrl: "[TERMS_URL]",
