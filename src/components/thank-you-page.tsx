@@ -1,0 +1,8 @@
+import { ArrowLeft, CheckCircle2, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getWhatsAppUrl } from "@/lib/site-config";
+import { trackEvent } from "@/lib/analytics";
+
+export function ThankYouPage() {
+  return <main className="relative grid min-h-screen place-items-center overflow-hidden bg-hero px-5 py-16"><div className="hero-grid" aria-hidden="true" /><div className="relative w-full max-w-2xl rounded-2xl border border-border bg-background p-8 text-center shadow-xl md:p-14"><span className="mx-auto grid size-16 place-items-center rounded-full bg-primary-soft text-primary"><CheckCircle2 className="size-8" /></span><p className="eyebrow mt-7">Solicitação recebida</p><h1 className="font-display text-3xl font-semibold leading-tight text-foreground md:text-5xl">Diagnóstico solicitado com sucesso.</h1><p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-muted-foreground">Recebi suas informações. Agora vou analisar seu cenário e entrar em contato pelo WhatsApp para combinarmos o próximo passo.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Button asChild size="lg"><a href={getWhatsAppUrl()} target="_blank" rel="noreferrer" onClick={() => trackEvent("cta_whatsapp_click", { label: "thank_you" })}><MessageCircle /> Falar com Felipe agora</a></Button><Button asChild variant="outline" size="lg"><a href="/"><ArrowLeft /> Voltar ao início</a></Button></div></div></main>;
+}
