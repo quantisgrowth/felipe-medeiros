@@ -7,4 +7,4 @@
 - [x] Aplicar a nova direção editorial e empresarial
 - [x] Atualizar hierarquia, linguagem e seções de autoridade e provas
 - [x] Validar formulário, links, desktop, celular e acessibilidade
-- [ ] Corrigir alertas de SEO e validar sitemap, dados estruturados e Search Console
+- [x] Corrigir alertas de SEO e validar sitemap, dados estruturados e Search Console
