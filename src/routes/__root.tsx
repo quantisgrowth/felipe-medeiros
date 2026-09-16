@@ -134,6 +134,14 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const siteSettings = Route.useLoaderData();
 
+  // Instancia o client do Supabase assim que qualquer página carrega no navegador.
+  // Isso garante que um link de convite/recuperação de senha (que chega com um
+  // token na URL) seja processado e vire uma sessão válida imediatamente,
+  // não importa em qual página da rota o usuário caiu.
+  useEffect(() => {
+    getSupabaseClient();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SiteSettingsProvider value={siteSettings}>
