@@ -13,6 +13,7 @@ export type SiteSettings = {
   footerTagline: string;
   heroPhotoUrl: string;
   aboutPhotoUrl: string;
+  leadWebhookUrl: string;
 };
 
 // Usado caso o Supabase esteja fora do ar, ou antes de a primeira
@@ -31,6 +32,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   footerTagline: "Especialista em Vendas, Liderança Comercial e Automação",
   heroPhotoUrl: "",
   aboutPhotoUrl: "",
+  leadWebhookUrl: "",
 };
 
 type SiteSettingsRow = {
@@ -46,6 +48,7 @@ type SiteSettingsRow = {
   footer_tagline: string;
   hero_photo_url: string;
   about_photo_url: string;
+  lead_webhook_url: string;
 };
 
 function rowToSettings(row: SiteSettingsRow): SiteSettings {
@@ -62,6 +65,7 @@ function rowToSettings(row: SiteSettingsRow): SiteSettings {
     footerTagline: row.footer_tagline || DEFAULT_SITE_SETTINGS.footerTagline,
     heroPhotoUrl: row.hero_photo_url,
     aboutPhotoUrl: row.about_photo_url,
+    leadWebhookUrl: row.lead_webhook_url,
   };
 }
 
@@ -79,6 +83,7 @@ export function settingsToRow(settings: SiteSettings): SiteSettingsRow {
     footer_tagline: settings.footerTagline,
     hero_photo_url: settings.heroPhotoUrl,
     about_photo_url: settings.aboutPhotoUrl,
+    lead_webhook_url: settings.leadWebhookUrl,
   };
 }
 
@@ -93,7 +98,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     const { data, error } = await supabase
       .from("site_settings")
       .select(
-        "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url",
+        "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url, lead_webhook_url",
       )
       .eq("id", true)
       .maybeSingle();
@@ -125,3 +130,67 @@ export const UTM_KEYS = [
   "utm_content",
   "utm_term",
 ] as const;
+
+export type LeadPayload = {
+  name: string;
+  company: string;
+  role: string;
+  whatsapp: string;
+  email: string;
+  segment: string;
+  monthlyLeads: string;
+  teamSize: string;
+  mainChallenge: string;
+  source: string;
+  pageUrl: string;
+  utm: Record<string, string>;
+};
+
+/**
+ * Salva a solicitação direto no Supabase (sempre funciona, é a fonte da
+ * verdade) e, se um webhook externo estiver configurado, também tenta
+ * encaminhar pra lá — mas isso nunca bloqueia nem falha o envio principal.
+ */
+export async function submitLead(payload: LeadPayload, webhookUrl: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.from("leads").insert({
+    name: payload.name,
+    company: payload.company,
+    role: payload.role,
+    whatsapp: payload.whatsapp,
+    email: payload.email,
+    segment: payload.segment,
+    monthly_leads: payload.monthlyLeads,
+    team_size: payload.teamSize,
+    main_challenge: payload.mainChallenge,
+    source: payload.source,
+    page_url: payload.pageUrl,
+    utm: payload.utm,
+  });
+
+  if (error) throw error;
+
+  if (isConfigured(webhookUrl)) {
+    // melhor esforço: se o webhook externo falhar, o lead já está salvo.
+    const webhookBody = {
+      name: payload.name,
+      company: payload.company,
+      role: payload.role,
+      whatsapp: payload.whatsapp,
+      email: payload.email,
+      segment: payload.segment,
+      monthly_leads: payload.monthlyLeads,
+      team_size: payload.teamSize,
+      main_challenge: payload.mainChallenge,
+      source: payload.source,
+      page_url: payload.pageUrl,
+      submitted_at: new Date().toISOString(),
+      ...payload.utm,
+    };
+    fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(webhookBody),
+    }).catch(() => {});
+  }
+}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhotoCropDialog } from "@/components/photo-crop-dialog";
@@ -38,7 +39,7 @@ export function AdminDashboard() {
       const { data, error } = await supabase
         .from("site_settings")
         .select(
-          "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url",
+          "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url, lead_webhook_url",
         )
         .eq("id", true)
         .maybeSingle();
@@ -61,6 +62,7 @@ export function AdminDashboard() {
           footerTagline: data.footer_tagline,
           heroPhotoUrl: data.hero_photo_url,
           aboutPhotoUrl: data.about_photo_url,
+          leadWebhookUrl: data.lead_webhook_url,
         });
       }
       setLoadState("ready");
@@ -124,6 +126,7 @@ export function AdminDashboard() {
             <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
             <TabsTrigger value="fotos">Fotos</TabsTrigger>
             <TabsTrigger value="tags">Tags & tracking</TabsTrigger>
+            <TabsTrigger value="leads">Leads</TabsTrigger>
             <TabsTrigger value="equipe">Equipe</TabsTrigger>
             <TabsTrigger value="seguranca">Senha</TabsTrigger>
           </TabsList>
@@ -247,6 +250,17 @@ export function AdminDashboard() {
                   placeholder="<script>...</script>"
                 />
               </Field>
+              <Field
+                label="Webhook de leads (opcional, avançado)"
+                hint="Se você usa n8n ou outra automação, cole aqui a URL que deve receber cada solicitação do formulário em paralelo. Não é obrigatório: os leads já ficam salvos e visíveis na aba 'Leads' mesmo sem isso."
+              >
+                <input
+                  className="form-control"
+                  value={settings.leadWebhookUrl}
+                  onChange={(e) => update("leadWebhookUrl", e.target.value)}
+                  placeholder="https://seu-n8n.com/webhook/..."
+                />
+              </Field>
             </TabsContent>
 
             <div className="sticky bottom-4 mt-6 flex justify-end">
@@ -255,6 +269,10 @@ export function AdminDashboard() {
               </Button>
             </div>
           </form>
+
+          <TabsContent value="leads" className="rounded-lg border border-border bg-surface p-6">
+            <LeadsList />
+          </TabsContent>
 
           <TabsContent value="equipe" className="rounded-lg border border-border bg-surface p-6">
             <InviteTeammate />
@@ -396,6 +414,140 @@ function PhotoField({
         />
       )}
     </div>
+  );
+}
+
+type Lead = {
+  id: string;
+  created_at: string;
+  name: string;
+  company: string;
+  role: string;
+  whatsapp: string;
+  email: string;
+  segment: string;
+  monthly_leads: string;
+  team_size: string;
+  main_challenge: string;
+  source: string;
+};
+
+function LeadsList() {
+  const supabase = getSupabaseClient();
+  const [leads, setLeads] = useState<Lead[] | null>(null);
+  const [selected, setSelected] = useState<Lead | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const { data, error } = await supabase
+        .from("leads")
+        .select(
+          "id, created_at, name, company, role, whatsapp, email, segment, monthly_leads, team_size, main_challenge, source",
+        )
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (!active) return;
+      if (error) {
+        toast.error("Não foi possível carregar os leads.", { description: error.message });
+        setLeads([]);
+        return;
+      }
+      setLeads(data ?? []);
+    }
+    load();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (leads === null) {
+    return <p className="text-sm text-muted-foreground">Carregando…</p>;
+  }
+
+  if (leads.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Nenhuma solicitação recebida ainda. Assim que alguém preencher o formulário do site, vai
+        aparecer aqui.
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="text-lg font-bold text-foreground">Solicitações recebidas</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {leads.length} {leads.length === 1 ? "solicitação" : "solicitações"} — clique em uma linha
+        pra ver os detalhes.
+      </p>
+
+      <div className="mt-5 overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs uppercase text-muted-foreground">
+              <th className="py-2 pr-4">Data</th>
+              <th className="py-2 pr-4">Nome</th>
+              <th className="py-2 pr-4">Empresa</th>
+              <th className="py-2 pr-4">WhatsApp</th>
+              <th className="py-2 pr-4">E-mail</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.map((lead) => (
+              <tr
+                key={lead.id}
+                onClick={() => setSelected(lead)}
+                className="cursor-pointer border-b border-border/60 hover:bg-muted/40"
+              >
+                <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
+                  {new Date(lead.created_at).toLocaleString("pt-BR")}
+                </td>
+                <td className="py-2 pr-4 font-medium text-foreground">{lead.name}</td>
+                <td className="py-2 pr-4">{lead.company}</td>
+                <td className="py-2 pr-4">{lead.whatsapp}</td>
+                <td className="py-2 pr-4">{lead.email}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{selected?.name}</DialogTitle>
+          </DialogHeader>
+          {selected && (
+            <div className="space-y-2 text-sm">
+              <DetailRow label="Empresa" value={selected.company} />
+              <DetailRow label="Cargo" value={selected.role} />
+              <DetailRow label="WhatsApp" value={selected.whatsapp} />
+              <DetailRow label="E-mail" value={selected.email} />
+              <DetailRow label="Segmento" value={selected.segment} />
+              <DetailRow label="Volume de leads" value={selected.monthly_leads} />
+              <DetailRow label="Tamanho da equipe" value={selected.team_size} />
+              <DetailRow label="Origem" value={selected.source} />
+              <div>
+                <p className="font-semibold text-foreground">Principal desafio</p>
+                <p className="mt-1 text-muted-foreground">{selected.main_challenge}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  if (!value) return null;
+  return (
+    <p>
+      <span className="font-semibold text-foreground">{label}:</span>{" "}
+      <span className="text-muted-foreground">{value}</span>
+    </p>
   );
 }
 
