@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PhotoCropDialog } from "@/components/photo-crop-dialog";
 import { getSupabaseClient } from "@/lib/supabase";
 import { settingsToRow, type SiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site-settings";
 
@@ -197,11 +198,20 @@ export function AdminDashboard() {
                 label="Foto de destaque (topo da página)"
                 value={settings.heroPhotoUrl}
                 onUploaded={(url) => update("heroPhotoUrl", url)}
+                aspect={4 / 5}
+                maxDimension={1600}
+                recommendedDimensions="1600×2000px (retrato, proporção 4:5)"
+                maxSourceMB={15}
               />
               <PhotoField
                 label="Foto da seção 'Sobre'"
                 value={settings.aboutPhotoUrl}
                 onUploaded={(url) => update("aboutPhotoUrl", url)}
+                aspect={1}
+                maxDimension={1200}
+                recommendedDimensions="1200×1200px (quadrada)"
+                maxSourceMB={10}
+                circular
               />
             </TabsContent>
 
@@ -281,31 +291,50 @@ function PhotoField({
   label,
   value,
   onUploaded,
+  aspect,
+  maxDimension,
+  recommendedDimensions,
+  maxSourceMB,
+  circular = false,
 }: {
   label: string;
   value: string;
   onUploaded: (url: string) => void;
+  aspect: number;
+  maxDimension: number;
+  recommendedDimensions: string;
+  maxSourceMB: number;
+  circular?: boolean;
 }) {
   const supabase = getSupabaseClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingImageSrc, setPendingImageSrc] = useState<string | null>(null);
 
-  async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
+    event.target.value = "";
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("A imagem precisa ter até 5MB.");
+    if (file.size > maxSourceMB * 1024 * 1024) {
+      toast.error(`A imagem original precisa ter até ${maxSourceMB}MB.`);
       return;
     }
 
-    setUploading(true);
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${crypto.randomUUID()}.${ext}`;
+    const reader = new FileReader();
+    reader.onload = () => setPendingImageSrc(reader.result as string);
+    reader.readAsDataURL(file);
+  }
 
-    const { error } = await supabase.storage.from("site-photos").upload(path, file, {
+  async function handleCropConfirm(blob: Blob) {
+    setPendingImageSrc(null);
+    setUploading(true);
+
+    const path = `${crypto.randomUUID()}.jpg`;
+    const { error } = await supabase.storage.from("site-photos").upload(path, blob, {
       upsert: true,
       cacheControl: "3600",
+      contentType: "image/jpeg",
     });
     setUploading(false);
 
@@ -327,7 +356,7 @@ function PhotoField({
           <img
             src={value}
             alt=""
-            className="size-20 rounded-lg border border-border object-cover"
+            className={`size-20 border border-border object-cover ${circular ? "rounded-full" : "rounded-lg"}`}
           />
         ) : (
           <div className="grid size-20 place-items-center rounded-lg border border-dashed border-border text-muted-foreground">
@@ -352,6 +381,20 @@ function PhotoField({
           />
         </div>
       </div>
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        Ideal: {recommendedDimensions}. Envie o arquivo original em até {maxSourceMB}MB — depois de
+        recortar, nós otimizamos automaticamente o tamanho pra não pesar o carregamento do site.
+      </p>
+
+      {pendingImageSrc && (
+        <PhotoCropDialog
+          imageSrc={pendingImageSrc}
+          aspect={aspect}
+          maxDimension={maxDimension}
+          onCancel={() => setPendingImageSrc(null)}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </div>
   );
 }

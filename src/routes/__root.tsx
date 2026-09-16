@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { fetchSiteSettings } from "../lib/site-settings";
 import { SiteSettingsProvider } from "../lib/site-settings-context";
 import { Toaster } from "../components/ui/sonner";
+import { getSupabaseClient } from "../lib/supabase";
 
 function NotFoundComponent() {
   return (
