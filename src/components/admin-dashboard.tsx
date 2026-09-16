@@ -124,6 +124,7 @@ export function AdminDashboard() {
             <TabsTrigger value="fotos">Fotos</TabsTrigger>
             <TabsTrigger value="tags">Tags & tracking</TabsTrigger>
             <TabsTrigger value="equipe">Equipe</TabsTrigger>
+            <TabsTrigger value="seguranca">Senha</TabsTrigger>
           </TabsList>
 
           <form onSubmit={handleSave}>
@@ -248,6 +249,10 @@ export function AdminDashboard() {
           <TabsContent value="equipe" className="rounded-lg border border-border bg-surface p-6">
             <InviteTeammate />
           </TabsContent>
+
+          <TabsContent value="seguranca" className="rounded-lg border border-border bg-surface p-6">
+            <ChangePassword />
+          </TabsContent>
         </Tabs>
       </div>
     </main>
@@ -347,6 +352,77 @@ function PhotoField({
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+function ChangePassword() {
+  const supabase = getSupabaseClient();
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get("password") ?? "");
+    const confirmPassword = String(form.get("confirmPassword") ?? "");
+
+    if (password.length < 8) {
+      toast.error("A senha precisa ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setSaving(false);
+
+    if (error) {
+      toast.error("Não foi possível salvar a senha", { description: error.message });
+      return;
+    }
+    (event.target as HTMLFormElement).reset();
+    toast.success("Senha atualizada!");
+  }
+
+  return (
+    <div className="max-w-md">
+      <h2 className="text-lg font-bold text-foreground">Definir / trocar senha</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Use isso logo após entrar por um link de convite, ou sempre que quiser trocar sua senha de
+        acesso ao admin.
+      </p>
+      <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <div>
+          <Label htmlFor="password">Nova senha</Label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            minLength={8}
+            autoComplete="new-password"
+            className="form-control mt-1.5"
+          />
+        </div>
+        <div>
+          <Label htmlFor="confirmPassword">Confirmar senha</Label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            required
+            minLength={8}
+            autoComplete="new-password"
+            className="form-control mt-1.5"
+          />
+        </div>
+        <Button type="submit" disabled={saving}>
+          {saving ? "Salvando…" : "Salvar senha"}
+        </Button>
+      </form>
     </div>
   );
 }
