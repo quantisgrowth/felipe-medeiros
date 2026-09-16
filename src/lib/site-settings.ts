@@ -14,6 +14,7 @@ export type SiteSettings = {
   heroPhotoUrl: string;
   aboutPhotoUrl: string;
   leadWebhookUrl: string;
+  notificationEmail: string;
 };
 
 // Usado caso o Supabase esteja fora do ar, ou antes de a primeira
@@ -33,6 +34,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroPhotoUrl: "",
   aboutPhotoUrl: "",
   leadWebhookUrl: "",
+  notificationEmail: "",
 };
 
 type SiteSettingsRow = {
@@ -49,6 +51,7 @@ type SiteSettingsRow = {
   hero_photo_url: string;
   about_photo_url: string;
   lead_webhook_url: string;
+  notification_email: string;
 };
 
 function rowToSettings(row: SiteSettingsRow): SiteSettings {
@@ -66,6 +69,7 @@ function rowToSettings(row: SiteSettingsRow): SiteSettings {
     heroPhotoUrl: row.hero_photo_url,
     aboutPhotoUrl: row.about_photo_url,
     leadWebhookUrl: row.lead_webhook_url,
+    notificationEmail: row.notification_email,
   };
 }
 
@@ -84,6 +88,7 @@ export function settingsToRow(settings: SiteSettings): SiteSettingsRow {
     hero_photo_url: settings.heroPhotoUrl,
     about_photo_url: settings.aboutPhotoUrl,
     lead_webhook_url: settings.leadWebhookUrl,
+    notification_email: settings.notificationEmail,
   };
 }
 
@@ -98,7 +103,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     const { data, error } = await supabase
       .from("site_settings")
       .select(
-        "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url, lead_webhook_url",
+        "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url, lead_webhook_url, notification_email",
       )
       .eq("id", true)
       .maybeSingle();

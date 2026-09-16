@@ -39,7 +39,7 @@ export function AdminDashboard() {
       const { data, error } = await supabase
         .from("site_settings")
         .select(
-          "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url, lead_webhook_url",
+          "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url, lead_webhook_url, notification_email",
         )
         .eq("id", true)
         .maybeSingle();
@@ -63,6 +63,7 @@ export function AdminDashboard() {
           heroPhotoUrl: data.hero_photo_url,
           aboutPhotoUrl: data.about_photo_url,
           leadWebhookUrl: data.lead_webhook_url,
+          notificationEmail: data.notification_email,
         });
       }
       setLoadState("ready");
@@ -436,6 +437,45 @@ function LeadsList() {
   const supabase = getSupabaseClient();
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [selected, setSelected] = useState<Lead | null>(null);
+  const [notificationEmail, setNotificationEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    async function loadNotificationEmail() {
+      const { data } = await supabase
+        .from("site_settings")
+        .select("notification_email")
+        .eq("id", true)
+        .maybeSingle();
+      if (active && data) setNotificationEmail(data.notification_email);
+    }
+    loadNotificationEmail();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleSaveEmail(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSavingEmail(true);
+    const { error } = await supabase
+      .from("site_settings")
+      .update({ notification_email: notificationEmail })
+      .eq("id", true);
+    setSavingEmail(false);
+
+    if (error) {
+      toast.error("Não foi possível salvar", { description: error.message });
+      return;
+    }
+    toast.success(
+      notificationEmail
+        ? "Pronto! Você vai receber um e-mail a cada nova solicitação."
+        : "Notificação por e-mail desativada.",
+    );
+  }
 
   useEffect(() => {
     let active = true;
@@ -463,56 +503,73 @@ function LeadsList() {
   }, []);
 
   if (leads === null) {
-    return <p className="text-sm text-muted-foreground">Carregando…</p>;
-  }
-
-  if (leads.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Nenhuma solicitação recebida ainda. Assim que alguém preencher o formulário do site, vai
-        aparecer aqui.
-      </p>
+      <div>
+        <NotificationEmailForm
+          value={notificationEmail}
+          onChange={setNotificationEmail}
+          onSubmit={handleSaveEmail}
+          saving={savingEmail}
+        />
+        <p className="mt-6 text-sm text-muted-foreground">Carregando…</p>
+      </div>
     );
   }
 
   return (
     <div>
-      <h2 className="text-lg font-bold text-foreground">Solicitações recebidas</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {leads.length} {leads.length === 1 ? "solicitação" : "solicitações"} — clique em uma linha
-        pra ver os detalhes.
-      </p>
+      <NotificationEmailForm
+        value={notificationEmail}
+        onChange={setNotificationEmail}
+        onSubmit={handleSaveEmail}
+        saving={savingEmail}
+      />
 
-      <div className="mt-5 overflow-x-auto">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-border text-xs uppercase text-muted-foreground">
-              <th className="py-2 pr-4">Data</th>
-              <th className="py-2 pr-4">Nome</th>
-              <th className="py-2 pr-4">Empresa</th>
-              <th className="py-2 pr-4">WhatsApp</th>
-              <th className="py-2 pr-4">E-mail</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leads.map((lead) => (
-              <tr
-                key={lead.id}
-                onClick={() => setSelected(lead)}
-                className="cursor-pointer border-b border-border/60 hover:bg-muted/40"
-              >
-                <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
-                  {new Date(lead.created_at).toLocaleString("pt-BR")}
-                </td>
-                <td className="py-2 pr-4 font-medium text-foreground">{lead.name}</td>
-                <td className="py-2 pr-4">{lead.company}</td>
-                <td className="py-2 pr-4">{lead.whatsapp}</td>
-                <td className="py-2 pr-4">{lead.email}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {leads.length === 0 ? (
+        <p className="mt-6 text-sm text-muted-foreground">
+          Nenhuma solicitação recebida ainda. Assim que alguém preencher o formulário do site, vai
+          aparecer aqui.
+        </p>
+      ) : (
+        <div className="mt-8">
+          <h2 className="text-lg font-bold text-foreground">Solicitações recebidas</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {leads.length} {leads.length === 1 ? "solicitação" : "solicitações"} — clique em uma
+            linha pra ver os detalhes.
+          </p>
+
+          <div className="mt-5 overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase text-muted-foreground">
+                  <th className="py-2 pr-4">Data</th>
+                  <th className="py-2 pr-4">Nome</th>
+                  <th className="py-2 pr-4">Empresa</th>
+                  <th className="py-2 pr-4">WhatsApp</th>
+                  <th className="py-2 pr-4">E-mail</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leads.map((lead) => (
+                  <tr
+                    key={lead.id}
+                    onClick={() => setSelected(lead)}
+                    className="cursor-pointer border-b border-border/60 hover:bg-muted/40"
+                  >
+                    <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
+                      {new Date(lead.created_at).toLocaleString("pt-BR")}
+                    </td>
+                    <td className="py-2 pr-4 font-medium text-foreground">{lead.name}</td>
+                    <td className="py-2 pr-4">{lead.company}</td>
+                    <td className="py-2 pr-4">{lead.whatsapp}</td>
+                    <td className="py-2 pr-4">{lead.email}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-lg">
@@ -538,6 +595,40 @@ function LeadsList() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function NotificationEmailForm({
+  value,
+  onChange,
+  onSubmit,
+  saving,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  saving: boolean;
+}) {
+  return (
+    <form onSubmit={onSubmit} className="max-w-md border-b border-border pb-6">
+      <h2 className="text-lg font-bold text-foreground">Receber por e-mail</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Toda vez que alguém enviar o formulário do site, avisamos nesse e-mail. Deixe em branco pra
+        desativar.
+      </p>
+      <div className="mt-4 flex gap-3">
+        <input
+          type="email"
+          className="form-control"
+          placeholder="seu@email.com"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <Button type="submit" disabled={saving} className="shrink-0">
+          {saving ? "Salvando…" : "Salvar"}
+        </Button>
+      </div>
+    </form>
   );
 }
 
