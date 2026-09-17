@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowRight,
-  BarChart3,
-  Bot,
   BrainCircuit,
   CalendarCheck,
   Check,
   CheckCircle2,
-  ChevronRight,
   CircleAlert,
-  Clock3,
   Database,
-  GitBranch,
   Linkedin,
   Mail,
   Menu,
@@ -22,7 +17,6 @@ import {
   Send,
   ShieldCheck,
   Target,
-  UsersRound,
   Workflow,
   X,
 } from "lucide-react";
@@ -46,12 +40,30 @@ const navItems = [
   ["FAQ", "faq"],
 ] as const;
 const problems = [
-  [MessageCircle, "Leads sem resposta"],
-  [Clock3, "Follow-ups esquecidos"],
-  [GitBranch, "Conversas espalhadas"],
-  [UsersRound, "Atendimento sem padrão"],
-  [BarChart3, "Falta de indicadores"],
-  [CircleAlert, "Pouca visibilidade do funil"],
+  [
+    "Leads sem resposta",
+    "O primeiro contato demora horas ou dias, e o interesse esfria antes de alguém responder.",
+  ],
+  [
+    "Follow-ups esquecidos",
+    "Sem um processo definido, o retorno depende da memória de quem atende — e memória falha.",
+  ],
+  [
+    "Conversas espalhadas",
+    "WhatsApp, e-mail, planilha: cada canal guarda um pedaço da história do cliente.",
+  ],
+  [
+    "Atendimento sem padrão",
+    "Cada vendedor conduz a conversa do seu jeito, sem um roteiro que garanta consistência.",
+  ],
+  [
+    "Falta de indicadores",
+    "Sem números, a decisão comercial vira achismo — e os gargalos passam despercebidos.",
+  ],
+  [
+    "Pouca visibilidade do funil",
+    "O gestor não sabe quantas oportunidades existem, em que etapa estão, nem por que travaram.",
+  ],
 ] as const;
 const authorityItems = [
   [Target, "Estratégia comercial"],
@@ -61,45 +73,30 @@ const authorityItems = [
 ] as const;
 const solutions = [
   [
-    Database,
     "CRM estruturado",
     "Leads, etapas, responsáveis e históricos organizados em uma operação clara.",
   ],
   [
-    MessageCircle,
     "Atendimento inteligente",
     "Um processo definido para receber, compreender e direcionar cada contato.",
   ],
+  ["Agentes de IA", "Apoio no primeiro atendimento, na coleta de informações e na qualificação."],
   [
-    Bot,
-    "Agentes de IA",
-    "Apoio no primeiro atendimento, na coleta de informações e na qualificação.",
-  ],
-  [
-    Workflow,
     "Automações comerciais",
     "Cadastros, distribuições, tarefas, confirmações, alertas e follow-ups.",
   ],
-  [
-    BarChart3,
-    "Indicadores de gestão",
-    "Visibilidade do funil para orientar decisões e corrigir gargalos.",
-  ],
-  [
-    Network,
-    "Integrações personalizadas",
-    "Conexão entre CRM, WhatsApp, formulários, agendas e sistemas.",
-  ],
+  ["Indicadores de gestão", "Visibilidade do funil para orientar decisões e corrigir gargalos."],
+  ["Integrações personalizadas", "Conexão entre CRM, WhatsApp, formulários, agendas e sistemas."],
 ] as const;
 const flowSteps = [
-  "Lead recebido",
-  "Atendimento",
-  "Cadastro",
-  "Qualificação",
-  "Distribuição",
-  "Follow-up",
-  "Gestão",
-];
+  ["Lead recebido", "Chega pelo site, WhatsApp ou indicação."],
+  ["Atendimento", "Primeiro contato conduzido por um roteiro claro."],
+  ["Cadastro", "Informações organizadas direto no CRM."],
+  ["Qualificação", "Critérios definidos separam quem está pronto para avançar."],
+  ["Distribuição", "Cada oportunidade chega ao responsável certo."],
+  ["Follow-up", "Retornos acompanhados, sem depender da memória."],
+  ["Gestão", "Indicadores mostram onde o funil trava."],
+] as const;
 const before = [
   "Conversas espalhadas",
   "Leads esquecidos",
@@ -467,11 +464,12 @@ export function Problems() {
           depende da memória da equipe. No final do mês, o gestor não consegue enxergar quantas
           oportunidades foram perdidas — nem por quê.
         </p>
-        <div className="mt-14 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-          {problems.map(([Icon, text]) => (
-            <article key={text} className="pain-item">
-              <Icon className="size-5 text-gold" />
-              <h3 className="mt-8 text-lg font-semibold text-foreground">{text}</h3>
+        <div className="mt-14 grid gap-x-12 gap-y-0 border-t border-border md:grid-cols-2">
+          {problems.map(([title, copy]) => (
+            <article key={title} className="problem-item">
+              <span className="problem-mark" aria-hidden="true" />
+              <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+              <p className="mt-2 leading-7 text-muted-foreground">{copy}</p>
             </article>
           ))}
         </div>
@@ -524,13 +522,14 @@ export function SolutionCards() {
         >
           Uma operação conectada do primeiro contato ao fechamento.
         </SectionHeading>
-        <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {solutions.map(([Icon, title, copy], index) => (
-            <article key={title} className="solution-card">
-              <span className="solution-number">0{index + 1}</span>
-              <Icon className="mt-10 size-6 text-gold" />
-              <h3 className="mt-6 text-xl font-semibold text-foreground">{title}</h3>
-              <p className="mt-3 leading-7 text-muted-foreground">{copy}</p>
+        <div className="mt-14 border-t border-border">
+          {solutions.map(([title, copy], index) => (
+            <article key={title} className="solution-row">
+              <span className="solution-row-index">{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+                <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">{copy}</p>
+              </div>
             </article>
           ))}
         </div>
@@ -546,12 +545,12 @@ export function ProcessFlow() {
         <SectionHeading inverse eyebrow="Fluxo da operação">
           Enquanto sua equipe constrói relacionamento, a tecnologia organiza o processo.
         </SectionHeading>
-        <div className="process-line mt-16">
-          {flowSteps.map((step, index) => (
+        <div className="process-line mt-20">
+          {flowSteps.map(([step, detail], index) => (
             <div key={step} className="process-step">
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <p>{step}</p>
-              {index < flowSteps.length - 1 && <ChevronRight aria-hidden="true" />}
+              <span className="process-node">{String(index + 1).padStart(2, "0")}</span>
+              <p className="step-title">{step}</p>
+              <p className="step-desc">{detail}</p>
             </div>
           ))}
         </div>
