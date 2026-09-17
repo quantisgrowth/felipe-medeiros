@@ -12,8 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ObrigadoRouteImport } from './routes/obrigado'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as ManagerFelipeIndexRouteImport } from './routes/manager-felipe/index'
+import { Route as ManagerFelipeLoginRouteImport } from './routes/manager-felipe/login'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,14 +30,14 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
+const ManagerFelipeIndexRoute = ManagerFelipeIndexRouteImport.update({
+  id: '/manager-felipe/',
+  path: '/manager-felipe/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin/login',
-  path: '/admin/login',
+const ManagerFelipeLoginRoute = ManagerFelipeLoginRouteImport.update({
+  id: '/manager-felipe/login',
+  path: '/manager-felipe/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -45,39 +45,54 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/obrigado': typeof ObrigadoRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin/': typeof AdminIndexRoute
+  '/manager-felipe/login': typeof ManagerFelipeLoginRoute
+  '/manager-felipe/': typeof ManagerFelipeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/obrigado': typeof ObrigadoRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin': typeof AdminIndexRoute
+  '/manager-felipe/login': typeof ManagerFelipeLoginRoute
+  '/manager-felipe': typeof ManagerFelipeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/obrigado': typeof ObrigadoRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin/': typeof AdminIndexRoute
+  '/manager-felipe/login': typeof ManagerFelipeLoginRoute
+  '/manager-felipe/': typeof ManagerFelipeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/obrigado' | '/sitemap.xml' | '/admin/login' | '/admin/'
+  fullPaths:
+    | '/'
+    | '/obrigado'
+    | '/sitemap.xml'
+    | '/manager-felipe/login'
+    | '/manager-felipe/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/obrigado' | '/sitemap.xml' | '/admin/login' | '/admin'
+  to:
+    | '/'
+    | '/obrigado'
+    | '/sitemap.xml'
+    | '/manager-felipe/login'
+    | '/manager-felipe'
   id:
-    '__root__' | '/' | '/obrigado' | '/sitemap.xml' | '/admin/login' | '/admin/'
+    | '__root__'
+    | '/'
+    | '/obrigado'
+    | '/sitemap.xml'
+    | '/manager-felipe/login'
+    | '/manager-felipe/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ObrigadoRoute: typeof ObrigadoRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  AdminLoginRoute: typeof AdminLoginRoute
-  AdminIndexRoute: typeof AdminIndexRoute
+  ManagerFelipeLoginRoute: typeof ManagerFelipeLoginRoute
+  ManagerFelipeIndexRoute: typeof ManagerFelipeIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -103,18 +118,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/admin'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
+    '/manager-felipe/': {
+      id: '/manager-felipe/'
+      path: '/manager-felipe'
+      fullPath: '/manager-felipe/'
+      preLoaderRoute: typeof ManagerFelipeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/admin/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
+    '/manager-felipe/login': {
+      id: '/manager-felipe/login'
+      path: '/manager-felipe/login'
+      fullPath: '/manager-felipe/login'
+      preLoaderRoute: typeof ManagerFelipeLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -124,8 +139,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ObrigadoRoute: ObrigadoRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  AdminLoginRoute: AdminLoginRoute,
-  AdminIndexRoute: AdminIndexRoute,
+  ManagerFelipeLoginRoute: ManagerFelipeLoginRoute,
+  ManagerFelipeIndexRoute: ManagerFelipeIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getSupabaseClient } from "@/lib/supabase";
 
-export const Route = createFileRoute("/admin/login")({
+export const Route = createFileRoute("/manager-felipe/login")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [{ title: "Entrar | Admin" }, { name: "robots", content: "noindex, nofollow" }],
