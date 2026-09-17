@@ -642,20 +642,37 @@ type PageViewStats = {
   unique_visitors: number;
   views_today: number;
   unique_today: number;
-  views_7d: number;
-  unique_7d: number;
+  by_device: Array<{ device_type: string; views: number; unique_visitors: number }>;
+  by_source: Array<{ source: string; views: number; unique_visitors: number }>;
   daily: Array<{ day: string; views: number; unique_visitors: number }>;
 };
+
+const DEVICE_LABELS: Record<string, string> = {
+  desktop: "Computador",
+  mobile: "Celular",
+  tablet: "Tablet",
+};
+
+function isoDateDaysAgo(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().slice(0, 10);
+}
 
 function PageViewMetrics() {
   const supabase = getSupabaseClient();
   const [stats, setStats] = useState<PageViewStats | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState(isoDateDaysAgo(30));
+  const [endDate, setEndDate] = useState(isoDateDaysAgo(0));
 
   useEffect(() => {
     let active = true;
     async function load() {
-      const { data, error } = await supabase.rpc("get_page_view_stats");
+      const { data, error } = await supabase.rpc("get_page_view_stats", {
+        p_start: `${startDate}T00:00:00Z`,
+        p_end: `${endDate}T23:59:59Z`,
+      });
       if (!active) return;
       if (error) {
         setErrorMessage(error.message);
@@ -667,19 +684,11 @@ function PageViewMetrics() {
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase, startDate, endDate]);
 
-  if (errorMessage) {
-    return (
-      <p className="text-sm text-destructive">
-        Não foi possível carregar as métricas: {errorMessage}
-      </p>
-    );
-  }
-
-  if (!stats) {
-    return <p className="text-sm text-muted-foreground">Carregando…</p>;
+  function setRange(days: number) {
+    setStartDate(isoDateDaysAgo(days));
+    setEndDate(isoDateDaysAgo(0));
   }
 
   return (
@@ -690,42 +699,163 @@ function PageViewMetrics() {
         entraram (contamos por um hash do IP, não guardamos o IP em texto puro).
       </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <StatCard label="Impressões (total)" value={stats.total_views} />
-        <StatCard label="Visitantes únicos (total)" value={stats.unique_visitors} />
-        <StatCard label="Impressões hoje" value={stats.views_today} />
-        <StatCard label="Únicos hoje" value={stats.unique_today} />
-        <StatCard label="Impressões (7 dias)" value={stats.views_7d} />
-        <StatCard label="Únicos (7 dias)" value={stats.unique_7d} />
+      <div className="mt-5 flex flex-wrap items-end gap-3">
+        <div>
+          <Label htmlFor="metrics-start" className="text-xs">
+            De
+          </Label>
+          <input
+            id="metrics-start"
+            type="date"
+            className="form-control mt-1"
+            value={startDate}
+            max={endDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="metrics-end" className="text-xs">
+            Até
+          </Label>
+          <input
+            id="metrics-end"
+            type="date"
+            className="form-control mt-1"
+            value={endDate}
+            min={startDate}
+            max={isoDateDaysAgo(0)}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => setRange(7)}>
+            7 dias
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setRange(30)}>
+            30 dias
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setRange(90)}>
+            90 dias
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setRange(3650)}>
+            Tudo
+          </Button>
+        </div>
       </div>
 
-      {stats.daily.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-sm font-bold text-foreground">Últimos 14 dias</h3>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[420px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs uppercase text-muted-foreground">
-                  <th className="py-2 pr-4">Dia</th>
-                  <th className="py-2 pr-4">Impressões</th>
-                  <th className="py-2 pr-4">Únicos</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.daily.map((row) => (
-                  <tr key={row.day} className="border-b border-border/60">
-                    <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
-                      {new Date(row.day).toLocaleDateString("pt-BR")}
-                    </td>
-                    <td className="py-2 pr-4 font-medium text-foreground">{row.views}</td>
-                    <td className="py-2 pr-4">{row.unique_visitors}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {errorMessage && (
+        <p className="mt-4 text-sm text-destructive">
+          Não foi possível carregar as métricas: {errorMessage}
+        </p>
       )}
+
+      {!stats && !errorMessage && <p className="mt-6 text-sm text-muted-foreground">Carregando…</p>}
+
+      {stats && (
+        <>
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard label="Impressões (período)" value={stats.total_views} />
+            <StatCard label="Visitantes únicos (período)" value={stats.unique_visitors} />
+            <StatCard label="Impressões hoje" value={stats.views_today} />
+            <StatCard label="Únicos hoje" value={stats.unique_today} />
+          </div>
+
+          <div className="mt-8 grid gap-8 sm:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Computador x Celular</h3>
+              <BreakdownTable
+                rows={stats.by_device.map((row) => ({
+                  label: DEVICE_LABELS[row.device_type] ?? row.device_type,
+                  views: row.views,
+                  unique_visitors: row.unique_visitors,
+                }))}
+                totalViews={stats.total_views}
+                emptyMessage="Sem dados nesse período."
+              />
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-foreground">De onde vêm as visitas</h3>
+              <BreakdownTable
+                rows={stats.by_source.map((row) => ({
+                  label: row.source === "direto" ? "Acesso direto" : row.source,
+                  views: row.views,
+                  unique_visitors: row.unique_visitors,
+                }))}
+                totalViews={stats.total_views}
+                emptyMessage="Sem dados nesse período."
+              />
+            </div>
+          </div>
+
+          {stats.daily.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-sm font-bold text-foreground">Por dia</h3>
+              <div className="mt-3 max-h-80 overflow-y-auto overflow-x-auto">
+                <table className="w-full min-w-[420px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs uppercase text-muted-foreground">
+                      <th className="py-2 pr-4">Dia</th>
+                      <th className="py-2 pr-4">Impressões</th>
+                      <th className="py-2 pr-4">Únicos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.daily.map((row) => (
+                      <tr key={row.day} className="border-b border-border/60">
+                        <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
+                          {new Date(row.day).toLocaleDateString("pt-BR")}
+                        </td>
+                        <td className="py-2 pr-4 font-medium text-foreground">{row.views}</td>
+                        <td className="py-2 pr-4">{row.unique_visitors}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function BreakdownTable({
+  rows,
+  totalViews,
+  emptyMessage,
+}: {
+  rows: Array<{ label: string; views: number; unique_visitors: number }>;
+  totalViews: number;
+  emptyMessage: string;
+}) {
+  if (rows.length === 0) {
+    return <p className="mt-3 text-sm text-muted-foreground">{emptyMessage}</p>;
+  }
+
+  return (
+    <div className="mt-3 overflow-x-auto">
+      <table className="w-full min-w-[280px] text-left text-sm">
+        <thead>
+          <tr className="border-b border-border text-xs uppercase text-muted-foreground">
+            <th className="py-2 pr-4">Origem</th>
+            <th className="py-2 pr-4">Impressões</th>
+            <th className="py-2 pr-4">%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label} className="border-b border-border/60">
+              <td className="py-2 pr-4 font-medium text-foreground">{row.label}</td>
+              <td className="py-2 pr-4">{row.views}</td>
+              <td className="py-2 pr-4 text-muted-foreground">
+                {totalViews > 0 ? Math.round((row.views / totalViews) * 100) : 0}%
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

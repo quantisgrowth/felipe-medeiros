@@ -149,7 +149,10 @@ function RootComponent() {
   // ou navegada dentro do site. Nunca deve travar ou afetar a navegação.
   useEffect(() => {
     if (pathname.startsWith("/admin")) return;
-    recordPageView({ data: { path: pathname } }).catch(() => {});
+    const utmSource = new URLSearchParams(window.location.search).get("utm_source") ?? "";
+    recordPageView({ data: { path: pathname, referrer: document.referrer, utmSource } }).catch(
+      () => {},
+    );
   }, [pathname]);
 
   return (
