@@ -720,7 +720,7 @@ export function Technologies() {
 export function About() {
   const settings = useSiteSettings();
   const indicators = [
-    "17+ anos de experiência prática",
+    "17+ anos de experiência comercial multissetorial",
     "Experiência em vendas e liderança",
     "Partner DataCrazy",
     "Agentes de IA com GPT Maker",
@@ -747,8 +747,8 @@ export function About() {
             empreendendo.
           </p>
           <p>
-            São mais de 17 anos de experiência prática no mercado de alimentação, passando por
-            diferentes funções até chegar à gestão e ao empreendedorismo.
+            São mais de 17 anos de experiência na área comercial em múltiplos setores: tecnologia,
+            consultoria, agências, SaaS e varejo.
           </p>
           <p>
             Hoje, conecto essa experiência à tecnologia para diagnosticar, estruturar e implementar
