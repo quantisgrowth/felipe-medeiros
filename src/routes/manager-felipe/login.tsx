@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getSupabaseClient } from "@/lib/supabase";
 
-export const Route = createFileRoute("/admin/login")({
+export const Route = createFileRoute("/manager-felipe/login")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [{ title: "Entrar | Admin" }, { name: "robots", content: "noindex, nofollow" }],
@@ -39,7 +39,7 @@ function AdminLoginPage() {
       if (data.session && invite) {
         setMode("set-password");
       } else if (data.session) {
-        navigate({ to: "/admin" });
+        navigate({ to: "/manager-felipe" });
       } else {
         setMode("login");
       }
@@ -77,7 +77,7 @@ function AdminLoginPage() {
       toast.error("Não foi possível entrar", { description: "Confira o e-mail e a senha." });
       return;
     }
-    navigate({ to: "/admin" });
+    navigate({ to: "/manager-felipe" });
   }
 
   async function handleSetPassword(event: FormEvent<HTMLFormElement>) {
@@ -104,7 +104,7 @@ function AdminLoginPage() {
       return;
     }
     toast.success("Senha definida! Bem-vindo(a).");
-    navigate({ to: "/admin" });
+    navigate({ to: "/manager-felipe" });
   }
 
   return (

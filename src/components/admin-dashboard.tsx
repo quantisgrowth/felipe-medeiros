@@ -30,7 +30,7 @@ export function AdminDashboard() {
 
       if (!sessionData.session) {
         setLoadState("unauthenticated");
-        navigate({ to: "/admin/login" });
+        navigate({ to: "/manager-felipe/login" });
         return;
       }
 
@@ -91,7 +91,7 @@ export function AdminDashboard() {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    navigate({ to: "/admin/login" });
+    navigate({ to: "/manager-felipe/login" });
   }
 
   function update<K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) {
