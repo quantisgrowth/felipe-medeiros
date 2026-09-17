@@ -39,7 +39,7 @@ function AdminLoginPage() {
       if (data.session && invite) {
         setMode("set-password");
       } else if (data.session) {
-        navigate({ to: "/admin" });
+        navigate({ to: "/manager-felipe" });
       } else {
         setMode("login");
       }
@@ -77,7 +77,7 @@ function AdminLoginPage() {
       toast.error("Não foi possível entrar", { description: "Confira o e-mail e a senha." });
       return;
     }
-    navigate({ to: "/admin" });
+    navigate({ to: "/manager-felipe" });
   }
 
   async function handleSetPassword(event: FormEvent<HTMLFormElement>) {
@@ -104,7 +104,7 @@ function AdminLoginPage() {
       return;
     }
     toast.success("Senha definida! Bem-vindo(a).");
-    navigate({ to: "/admin" });
+    navigate({ to: "/manager-felipe" });
   }
 
   return (

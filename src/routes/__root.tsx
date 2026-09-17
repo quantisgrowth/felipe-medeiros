@@ -116,7 +116,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="pt-BR">
       <head>
         <HeadContent />
-        {/* Tags/pixels configurados no /admin pela equipe de tráfego (GA, Meta Pixel, GTM, etc.) */}
+        {/* Tags/pixels configurados no /manager-felipe pela equipe de tráfego (GA, Meta Pixel, GTM, etc.) */}
         {siteSettings.customHeadScripts && (
           <div
             suppressHydrationWarning
@@ -148,7 +148,7 @@ function RootComponent() {
   // Contador de visitas: registra uma visualização a cada página carregada
   // ou navegada dentro do site. Nunca deve travar ou afetar a navegação.
   useEffect(() => {
-    if (pathname.startsWith("/admin")) return;
+    if (pathname.startsWith("/manager-felipe")) return;
     const utmSource = new URLSearchParams(window.location.search).get("utm_source") ?? "";
     recordPageView({ data: { path: pathname, referrer: document.referrer, utmSource } }).catch(
       () => {},
