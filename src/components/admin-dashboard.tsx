@@ -128,6 +128,7 @@ export function AdminDashboard() {
             <TabsTrigger value="fotos">Fotos</TabsTrigger>
             <TabsTrigger value="tags">Tags & tracking</TabsTrigger>
             <TabsTrigger value="leads">Leads</TabsTrigger>
+            <TabsTrigger value="metricas">Métricas</TabsTrigger>
             <TabsTrigger value="equipe">Equipe</TabsTrigger>
             <TabsTrigger value="seguranca">Senha</TabsTrigger>
           </TabsList>
@@ -273,6 +274,10 @@ export function AdminDashboard() {
 
           <TabsContent value="leads" className="rounded-lg border border-border bg-surface p-6">
             <LeadsList />
+          </TabsContent>
+
+          <TabsContent value="metricas" className="rounded-lg border border-border bg-surface p-6">
+            <PageViewMetrics />
           </TabsContent>
 
           <TabsContent value="equipe" className="rounded-lg border border-border bg-surface p-6">
@@ -629,6 +634,108 @@ function NotificationEmailForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+type PageViewStats = {
+  total_views: number;
+  unique_visitors: number;
+  views_today: number;
+  unique_today: number;
+  views_7d: number;
+  unique_7d: number;
+  daily: Array<{ day: string; views: number; unique_visitors: number }>;
+};
+
+function PageViewMetrics() {
+  const supabase = getSupabaseClient();
+  const [stats, setStats] = useState<PageViewStats | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const { data, error } = await supabase.rpc("get_page_view_stats");
+      if (!active) return;
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+      setStats(data as PageViewStats);
+    }
+    load();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (errorMessage) {
+    return (
+      <p className="text-sm text-destructive">
+        Não foi possível carregar as métricas: {errorMessage}
+      </p>
+    );
+  }
+
+  if (!stats) {
+    return <p className="text-sm text-muted-foreground">Carregando…</p>;
+  }
+
+  return (
+    <div>
+      <h2 className="text-lg font-bold text-foreground">Visitas ao site</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Impressões = quantas vezes o site foi aberto. Visitantes únicos = quantos IPs diferentes
+        entraram (contamos por um hash do IP, não guardamos o IP em texto puro).
+      </p>
+
+      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <StatCard label="Impressões (total)" value={stats.total_views} />
+        <StatCard label="Visitantes únicos (total)" value={stats.unique_visitors} />
+        <StatCard label="Impressões hoje" value={stats.views_today} />
+        <StatCard label="Únicos hoje" value={stats.unique_today} />
+        <StatCard label="Impressões (7 dias)" value={stats.views_7d} />
+        <StatCard label="Únicos (7 dias)" value={stats.unique_7d} />
+      </div>
+
+      {stats.daily.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-sm font-bold text-foreground">Últimos 14 dias</h3>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[420px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase text-muted-foreground">
+                  <th className="py-2 pr-4">Dia</th>
+                  <th className="py-2 pr-4">Impressões</th>
+                  <th className="py-2 pr-4">Únicos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.daily.map((row) => (
+                  <tr key={row.day} className="border-b border-border/60">
+                    <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
+                      {new Date(row.day).toLocaleDateString("pt-BR")}
+                    </td>
+                    <td className="py-2 pr-4 font-medium text-foreground">{row.views}</td>
+                    <td className="py-2 pr-4">{row.unique_visitors}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-border p-4">
+      <p className="text-2xl font-bold text-foreground">{value.toLocaleString("pt-BR")}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+    </div>
   );
 }
 

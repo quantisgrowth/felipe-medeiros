@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -15,6 +16,7 @@ import { fetchSiteSettings } from "../lib/site-settings";
 import { SiteSettingsProvider } from "../lib/site-settings-context";
 import { Toaster } from "../components/ui/sonner";
 import { getSupabaseClient } from "../lib/supabase";
+import { recordPageView } from "../lib/track-page-view";
 
 function NotFoundComponent() {
   return (
@@ -133,6 +135,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const siteSettings = Route.useLoaderData();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Instancia o client do Supabase assim que qualquer página carrega no navegador.
   // Isso garante que um link de convite/recuperação de senha (que chega com um
@@ -141,6 +144,13 @@ function RootComponent() {
   useEffect(() => {
     getSupabaseClient();
   }, []);
+
+  // Contador de visitas: registra uma visualização a cada página carregada
+  // ou navegada dentro do site. Nunca deve travar ou afetar a navegação.
+  useEffect(() => {
+    if (pathname.startsWith("/admin")) return;
+    recordPageView({ data: { path: pathname } }).catch(() => {});
+  }, [pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
