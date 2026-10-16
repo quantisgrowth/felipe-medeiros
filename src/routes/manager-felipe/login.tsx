@@ -28,6 +28,22 @@ function AdminLoginPage() {
   const supabase = getSupabaseClient();
   const [mode, setMode] = useState<"checking" | "login" | "set-password">("checking");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  function toggleButtonProps(show: boolean, onToggle: () => void) {
+    return {
+      type: "button" as const,
+      variant: "ghost" as const,
+      size: "icon" as const,
+      onClick: onToggle,
+      "aria-label": show ? "Ocultar senha" : "Mostrar senha",
+      "aria-pressed": show,
+      className:
+        "absolute right-1.5 top-1/2 -translate-y-1/2 size-8 text-inverse-muted hover:text-inverse hover:bg-transparent",
+    };
+  }
 
   useEffect(() => {
     let active = true;
