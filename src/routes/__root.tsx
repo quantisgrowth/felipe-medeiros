@@ -15,7 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { fetchSiteSettings } from "../lib/site-settings";
 import { SiteSettingsProvider } from "../lib/site-settings-context";
 import { Toaster } from "../components/ui/sonner";
-import { getSupabaseClient } from "../lib/supabase";
+import { getSupabaseClient, SUPABASE_URL } from "../lib/supabase";
 import { recordPageView } from "../lib/track-page-view";
 
 function NotFoundComponent() {
@@ -95,6 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon-fm.svg", type: "image/svg+xml" },
+      { rel: "preconnect", href: SUPABASE_URL, crossOrigin: "anonymous" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

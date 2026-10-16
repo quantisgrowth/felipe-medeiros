@@ -1,5 +1,5 @@
 import { DEFAULT_ROLES, DEFAULT_SEGMENTS, normalizeOptions } from "./form-options";
-import { getSupabaseClient } from "./supabase";
+import { getSupabaseClient, getPublicSupabaseClient } from "./supabase";
 
 export type SiteSettings = {
   whatsappNumber: string;
@@ -167,7 +167,7 @@ export type LeadPayload = {
  * encaminhar pra lá — mas isso nunca bloqueia nem falha o envio principal.
  */
 export async function submitLead(payload: LeadPayload, webhookUrl: string): Promise<void> {
-  const supabase = getSupabaseClient();
+  const supabase = getPublicSupabaseClient();
   const record = {
     name: payload.name,
     company: payload.company,
