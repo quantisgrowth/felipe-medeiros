@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ObrigadoRouteImport } from './routes/obrigado'
+import { Route as ProdutosEServicosRouteImport } from './routes/produtos-e-servicos'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ManagerFelipeIndexRouteImport } from './routes/manager-felipe/index'
 import { Route as ManagerFelipeLoginRouteImport } from './routes/manager-felipe/login'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const ObrigadoRoute = ObrigadoRouteImport.update({
   id: '/obrigado',
   path: '/obrigado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdutosEServicosRoute = ProdutosEServicosRouteImport.update({
+  id: '/produtos-e-servicos',
+  path: '/produtos-e-servicos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -44,6 +50,7 @@ const ManagerFelipeLoginRoute = ManagerFelipeLoginRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/obrigado': typeof ObrigadoRoute
+  '/produtos-e-servicos': typeof ProdutosEServicosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/manager-felipe/login': typeof ManagerFelipeLoginRoute
   '/manager-felipe/': typeof ManagerFelipeIndexRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/obrigado': typeof ObrigadoRoute
+  '/produtos-e-servicos': typeof ProdutosEServicosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/manager-felipe/login': typeof ManagerFelipeLoginRoute
   '/manager-felipe': typeof ManagerFelipeIndexRoute
@@ -59,6 +67,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/obrigado': typeof ObrigadoRoute
+  '/produtos-e-servicos': typeof ProdutosEServicosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/manager-felipe/login': typeof ManagerFelipeLoginRoute
   '/manager-felipe/': typeof ManagerFelipeIndexRoute
@@ -68,6 +77,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/obrigado'
+    | '/produtos-e-servicos'
     | '/sitemap.xml'
     | '/manager-felipe/login'
     | '/manager-felipe/'
@@ -75,6 +85,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/obrigado'
+    | '/produtos-e-servicos'
     | '/sitemap.xml'
     | '/manager-felipe/login'
     | '/manager-felipe'
@@ -82,6 +93,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/obrigado'
+    | '/produtos-e-servicos'
     | '/sitemap.xml'
     | '/manager-felipe/login'
     | '/manager-felipe/'
@@ -90,6 +102,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ObrigadoRoute: typeof ObrigadoRoute
+  ProdutosEServicosRoute: typeof ProdutosEServicosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ManagerFelipeLoginRoute: typeof ManagerFelipeLoginRoute
   ManagerFelipeIndexRoute: typeof ManagerFelipeIndexRoute
@@ -109,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/obrigado'
       fullPath: '/obrigado'
       preLoaderRoute: typeof ObrigadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produtos-e-servicos': {
+      id: '/produtos-e-servicos'
+      path: '/produtos-e-servicos'
+      fullPath: '/produtos-e-servicos'
+      preLoaderRoute: typeof ProdutosEServicosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -138,6 +158,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ObrigadoRoute: ObrigadoRoute,
+  ProdutosEServicosRoute: ProdutosEServicosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ManagerFelipeLoginRoute: ManagerFelipeLoginRoute,
   ManagerFelipeIndexRoute: ManagerFelipeIndexRoute,

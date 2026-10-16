@@ -286,21 +286,27 @@ export function Header() {
   }, []);
   return (
     <header className={`site-header ${scrolled ? "is-scrolled" : ""}`}>
-      <div className="container-shell grid h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 lg:grid-cols-[auto_1fr_auto]">
-        <a href="#inicio" className="min-w-0" aria-label="Felipe Medeiros — início">
+      <div className="container-shell grid h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 xl:grid-cols-[auto_1fr_auto]">
+        <a href="/#inicio" className="min-w-0" aria-label="Felipe Medeiros — início">
           <span className="block truncate text-base font-bold text-inverse">Felipe Medeiros</span>
           <span className="block truncate text-[10px] font-semibold uppercase text-inverse-muted">
             Vendas • Estratégia • Automação
           </span>
         </a>
         <nav
-          className="hidden items-center justify-center gap-7 lg:flex"
+          className="hidden items-center justify-center gap-5 xl:flex"
           aria-label="Navegação principal"
         >
+          <a
+            href="/produtos-e-servicos"
+            className="text-sm font-medium text-inverse-muted transition-colors hover:text-gold-light"
+          >
+            Produtos e serviços
+          </a>
           {navItems.map(([label, id]) => (
             <a
               key={id}
-              href={`#${id}`}
+              href={`/#${id}`}
               className="text-sm font-medium text-inverse-muted transition-colors hover:text-gold-light"
             >
               {label}
@@ -309,7 +315,7 @@ export function Header() {
         </nav>
         <div className="flex shrink-0 items-center gap-2">
           <Button asChild className="button-gold hidden px-3 min-[360px]:inline-flex sm:px-6">
-            <a href="#diagnostico">
+            <a href="/#diagnostico">
               <span className="sm:hidden">Diagnóstico</span>
               <span className="hidden sm:inline">Agendar diagnóstico</span>
               <ArrowRight />
@@ -318,7 +324,7 @@ export function Header() {
           <Button
             variant="outline"
             size="icon"
-            className="border-inverse/25 bg-transparent text-inverse hover:bg-inverse/10 hover:text-inverse lg:hidden"
+            className="border-inverse/25 bg-transparent text-inverse hover:bg-inverse/10 hover:text-inverse xl:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Fechar menu" : "Abrir menu"}
             aria-expanded={open}
@@ -329,14 +335,21 @@ export function Header() {
       </div>
       {open && (
         <nav
-          className="border-t border-inverse/15 bg-deep px-5 py-4 lg:hidden"
+          className="border-t border-inverse/15 bg-deep px-5 py-4 xl:hidden"
           aria-label="Navegação para celular"
         >
           <div className="mx-auto grid max-w-7xl gap-1">
+            <a
+              href="/produtos-e-servicos"
+              onClick={() => setOpen(false)}
+              className="rounded-md px-3 py-3 text-sm font-medium text-inverse hover:bg-inverse/10"
+            >
+              Produtos e serviços
+            </a>
             {navItems.map(([label, id]) => (
               <a
                 key={id}
-                href={`#${id}`}
+                href={`/#${id}`}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-3 text-sm font-medium text-inverse hover:bg-inverse/10"
               >
@@ -344,7 +357,7 @@ export function Header() {
               </a>
             ))}
             <Button asChild className="button-gold mt-2 min-[360px]:hidden">
-              <a href="#diagnostico" onClick={() => setOpen(false)}>
+              <a href="/#diagnostico" onClick={() => setOpen(false)}>
                 Agendar diagnóstico <ArrowRight />
               </a>
             </Button>
@@ -1141,6 +1154,9 @@ export function Footer() {
             className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-sm"
             aria-label="Links do rodapé"
           >
+            <a href="/produtos-e-servicos" className="footer-link">
+              Produtos e serviços
+            </a>
             <a
               href={getSafeExternalUrl(settings.linkedinUrl)}
               target="_blank"
