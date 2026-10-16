@@ -42,3 +42,26 @@ test('salva ferramentas e retorna sem aguardar webhook lento; erro no banco nunc
     assert.equal(webhook,undefined);
   } finally { globalThis.fetch=originalFetch; delete globalThis.testSupabase; }
 });
+
+test('banco sem coluna tools recebe todas as respostas pelo campo existente, sem perder ferramentas', async () => {
+  const records = [];
+  globalThis.testSupabase = {from:()=>({insert:async record=>{
+    records.push(record);
+    return {error:records.length===1 ? {code:'PGRST204',message:"Could not find the 'tools' column of 'leads' in the schema cache"} : null};
+  }})};
+  try {
+    await submitLead(payload,'');
+    assert.equal(records.length,2);
+    assert.equal('tools' in records[1],false);
+    assert.equal(records[1].main_challenge,'Organizar a operação\n\nFerramentas atuais: CRM, WhatsApp');
+    assert.equal(records[1].whatsapp,payload.whatsapp);
+  } finally {delete globalThis.testSupabase;}
+});
+test('não repete gravação em erro de permissão ou indisponibilidade', async () => {
+  let calls = 0;
+  globalThis.testSupabase = {from:()=>({insert:async()=>{calls++;return {error:{code:'42501',message:'permission denied'}};}})};
+  try {
+    await assert.rejects(submitLead(payload,''));
+    assert.equal(calls,1);
+  } finally {delete globalThis.testSupabase;}
+});
