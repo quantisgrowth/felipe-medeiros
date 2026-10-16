@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,8 @@ function AdminLoginPage() {
   const supabase = getSupabaseClient();
   const [mode, setMode] = useState<"checking" | "login" | "set-password">("checking");
   const [loading, setLoading] = useState(false);
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
@@ -228,6 +230,8 @@ function AdminLoginPage() {
                   minLength={8}
                   autoComplete="new-password"
                   className="form-control pr-12"
+                  value={newPw}
+                  onChange={(e) => setNewPw(e.target.value)}
                 />
                 <Button {...toggleButtonProps(showPassword, () => setShowPassword((v) => !v))}>
                   {showPassword ? <EyeOff /> : <Eye />}
@@ -247,6 +251,9 @@ function AdminLoginPage() {
                   minLength={8}
                   autoComplete="new-password"
                   className="form-control pr-12"
+                  value={confirmPw}
+                  onChange={(e) => setConfirmPw(e.target.value)}
+                  aria-describedby="password-match"
                 />
                 <Button
                   {...toggleButtonProps(showConfirmPassword, () =>
@@ -256,6 +263,22 @@ function AdminLoginPage() {
                   {showConfirmPassword ? <EyeOff /> : <Eye />}
                 </Button>
               </div>
+              <p
+                id="password-match"
+                aria-live="polite"
+                className={`mt-2 flex items-center gap-1.5 text-sm ${newPw === confirmPw ? "text-emerald-400" : "text-destructive"}`}
+              >
+                {confirmPw.length > 0 &&
+                  (newPw === confirmPw ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" /> Tá certinho, pode confirmar
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-4 w-4" /> Tem algo errado ai na senha
+                    </>
+                  ))}
+              </p>
             </div>
             <Button type="submit" size="lg" disabled={loading} className="button-gold w-full">
               {loading ? "Salvando…" : "Salvar senha e entrar"}
