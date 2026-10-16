@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,22 @@ function AdminLoginPage() {
   const supabase = getSupabaseClient();
   const [mode, setMode] = useState<"checking" | "login" | "set-password">("checking");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  function toggleButtonProps(show: boolean, onToggle: () => void) {
+    return {
+      type: "button" as const,
+      variant: "ghost" as const,
+      size: "icon" as const,
+      onClick: onToggle,
+      "aria-label": show ? "Ocultar senha" : "Mostrar senha",
+      "aria-pressed": show,
+      className:
+        "absolute right-1.5 top-1/2 -translate-y-1/2 size-8 text-inverse-muted hover:text-inverse hover:bg-transparent",
+    };
+  }
 
   useEffect(() => {
     let active = true;
@@ -78,6 +95,34 @@ function AdminLoginPage() {
       return;
     }
     navigate({ to: "/manager-felipe" });
+  }
+
+  async function handleForgotPassword() {
+    const emailInput = document.querySelector<HTMLInputElement>("#email");
+    const email = emailInput?.value.trim() ?? "";
+
+    if (!email) {
+      toast.error("Digite seu e-mail primeiro", {
+        description: "Informe o e-mail do admin no campo acima para receber o link.",
+      });
+      emailInput?.focus();
+      return;
+    }
+
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/manager-felipe/login`,
+    });
+    setResetLoading(false);
+
+    if (error) {
+      toast.error("Não foi possível enviar o link", { description: error.message });
+      return;
+    }
+    toast.success("Link de redefinição enviado", {
+      description: `Confira a caixa de entrada de ${email}. Ao abrir o link, você definirá uma nova senha.`,
+      duration: 8000,
+    });
   }
 
   async function handleSetPassword(event: FormEvent<HTMLFormElement>) {
@@ -136,18 +181,31 @@ function AdminLoginPage() {
               <Label htmlFor="password" className="text-inverse-muted">
                 Senha
               </Label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                className="form-control mt-1.5"
-              />
+              <div className="relative mt-1.5">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  className="form-control pr-12"
+                />
+                <Button {...toggleButtonProps(showPassword, () => setShowPassword((v) => !v))}>
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </div>
             <Button type="submit" size="lg" disabled={loading} className="button-gold w-full">
               {loading ? "Entrando…" : "Entrar"}
             </Button>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={resetLoading}
+              className="mx-auto block text-xs font-bold text-inverse-muted underline underline-offset-4 transition-colors hover:text-gold-light disabled:opacity-60"
+            >
+              {resetLoading ? "Enviando link…" : "Esqueci minha senha"}
+            </button>
           </form>
         )}
 
@@ -161,29 +219,43 @@ function AdminLoginPage() {
               <Label htmlFor="password" className="text-inverse-muted">
                 Nova senha
               </Label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className="form-control mt-1.5"
-              />
+              <div className="relative mt-1.5">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="form-control pr-12"
+                />
+                <Button {...toggleButtonProps(showPassword, () => setShowPassword((v) => !v))}>
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </div>
             <div>
               <Label htmlFor="confirmPassword" className="text-inverse-muted">
                 Confirmar senha
               </Label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className="form-control mt-1.5"
-              />
+              <div className="relative mt-1.5">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="form-control pr-12"
+                />
+                <Button
+                  {...toggleButtonProps(showConfirmPassword, () =>
+                    setShowConfirmPassword((v) => !v),
+                  )}
+                >
+                  {showConfirmPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </div>
             <Button type="submit" size="lg" disabled={loading} className="button-gold w-full">
               {loading ? "Salvando…" : "Salvar senha e entrar"}
