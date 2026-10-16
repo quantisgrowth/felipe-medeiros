@@ -1,3 +1,4 @@
+import { DEFAULT_ROLES, DEFAULT_SEGMENTS, normalizeOptions } from "@/lib/form-options";
 import { useNavigate } from "@tanstack/react-router";
 import { LogOut, UploadCloud } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -38,9 +39,7 @@ export function AdminDashboard() {
 
       const { data, error } = await supabase
         .from("site_settings")
-        .select(
-          "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url, lead_webhook_url, notification_email",
-        )
+        .select("*")
         .eq("id", true)
         .maybeSingle();
 
@@ -64,6 +63,8 @@ export function AdminDashboard() {
           aboutPhotoUrl: data.about_photo_url,
           leadWebhookUrl: data.lead_webhook_url,
           notificationEmail: data.notification_email,
+          formRoles: normalizeOptions(data.form_roles, DEFAULT_ROLES),
+          formSegments: normalizeOptions(data.form_segments, DEFAULT_SEGMENTS),
         });
       }
       setLoadState("ready");
@@ -75,6 +76,14 @@ export function AdminDashboard() {
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (
+      ![settings.formRoles, settings.formSegments].every((options) =>
+        options.some((option) => option.trim()),
+      )
+    ) {
+      toast.error("Inclua pelo menos um cargo e um segmento nas opções do formulário.");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("site_settings")
@@ -125,6 +134,7 @@ export function AdminDashboard() {
         <Tabs defaultValue="conteudo" className="mt-8">
           <TabsList>
             <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
+            <TabsTrigger value="formulario">Formulário</TabsTrigger>
             <TabsTrigger value="fotos">Fotos</TabsTrigger>
             <TabsTrigger value="tags">Tags & tracking</TabsTrigger>
             <TabsTrigger value="leads">Leads</TabsTrigger>
@@ -191,6 +201,35 @@ export function AdminDashboard() {
                   value={settings.termsUrl}
                   onChange={(e) => update("termsUrl", e.target.value)}
                   placeholder="https://..."
+                />
+              </Field>
+            </TabsContent>
+
+            <TabsContent
+              value="formulario"
+              className="space-y-6 rounded-lg border border-border bg-surface p-6"
+            >
+              <h2 className="text-xl font-bold">Opções do formulário de diagnóstico</h2>
+              <p className="text-sm text-muted-foreground">
+                Adicione ou remova opções, uma por linha. Use o botão de salvar configurações ao
+                terminar. Pelo menos uma opção é necessária em cada lista.
+              </p>
+              <Field label="Cargos disponíveis">
+                <textarea
+                  required
+                  rows={12}
+                  className="form-control h-auto py-3"
+                  value={settings.formRoles.join("\n")}
+                  onChange={(e) => update("formRoles", e.target.value.split("\n"))}
+                />
+              </Field>
+              <Field label="Segmentos disponíveis">
+                <textarea
+                  required
+                  rows={12}
+                  className="form-control h-auto py-3"
+                  value={settings.formSegments.join("\n")}
+                  onChange={(e) => update("formSegments", e.target.value.split("\n"))}
                 />
               </Field>
             </TabsContent>
@@ -435,6 +474,7 @@ type Lead = {
   monthly_leads: string;
   team_size: string;
   main_challenge: string;
+  tools?: string[];
   source: string;
 };
 
@@ -487,9 +527,7 @@ function LeadsList() {
     async function load() {
       const { data, error } = await supabase
         .from("leads")
-        .select(
-          "id, created_at, name, company, role, whatsapp, email, segment, monthly_leads, team_size, main_challenge, source",
-        )
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(200);
       if (!active) return;
@@ -591,6 +629,10 @@ function LeadsList() {
               <DetailRow label="Volume de leads" value={selected.monthly_leads} />
               <DetailRow label="Tamanho da equipe" value={selected.team_size} />
               <DetailRow label="Origem" value={selected.source} />
+              <DetailRow
+                label="Ferramentas atuais"
+                value={selected.tools?.join(", ") || "Nenhuma informada"}
+              />
               <div>
                 <p className="font-semibold text-foreground">Principal desafio</p>
                 <p className="mt-1 text-muted-foreground">{selected.main_challenge}</p>

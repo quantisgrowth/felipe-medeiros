@@ -1,3 +1,4 @@
+import { DEFAULT_ROLES, DEFAULT_SEGMENTS, normalizeOptions } from "./form-options";
 import { getSupabaseClient } from "./supabase";
 
 export type SiteSettings = {
@@ -15,6 +16,8 @@ export type SiteSettings = {
   aboutPhotoUrl: string;
   leadWebhookUrl: string;
   notificationEmail: string;
+  formRoles: string[];
+  formSegments: string[];
 };
 
 // Usado caso o Supabase esteja fora do ar, ou antes de a primeira
@@ -35,6 +38,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   aboutPhotoUrl: "",
   leadWebhookUrl: "",
   notificationEmail: "",
+  formRoles: DEFAULT_ROLES,
+  formSegments: DEFAULT_SEGMENTS,
 };
 
 type SiteSettingsRow = {
@@ -52,6 +57,8 @@ type SiteSettingsRow = {
   about_photo_url: string;
   lead_webhook_url: string;
   notification_email: string;
+  form_roles?: string[];
+  form_segments?: string[];
 };
 
 function rowToSettings(row: SiteSettingsRow): SiteSettings {
@@ -70,6 +77,8 @@ function rowToSettings(row: SiteSettingsRow): SiteSettings {
     aboutPhotoUrl: row.about_photo_url,
     leadWebhookUrl: row.lead_webhook_url,
     notificationEmail: row.notification_email,
+    formRoles: normalizeOptions(row.form_roles, DEFAULT_ROLES),
+    formSegments: normalizeOptions(row.form_segments, DEFAULT_SEGMENTS),
   };
 }
 
@@ -89,6 +98,8 @@ export function settingsToRow(settings: SiteSettings): SiteSettingsRow {
     about_photo_url: settings.aboutPhotoUrl,
     lead_webhook_url: settings.leadWebhookUrl,
     notification_email: settings.notificationEmail,
+    form_roles: normalizeOptions(settings.formRoles, DEFAULT_ROLES),
+    form_segments: normalizeOptions(settings.formSegments, DEFAULT_SEGMENTS),
   };
 }
 
@@ -102,9 +113,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("site_settings")
-      .select(
-        "whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url, ga_measurement_id, meta_pixel_id, custom_head_scripts, footer_tagline, hero_photo_url, about_photo_url, lead_webhook_url, notification_email",
-      )
+      .select("*")
       .eq("id", true)
       .maybeSingle();
 
@@ -146,6 +155,7 @@ export type LeadPayload = {
   monthlyLeads: string;
   teamSize: string;
   mainChallenge: string;
+  tools: string[];
   source: string;
   pageUrl: string;
   utm: Record<string, string>;
@@ -168,6 +178,7 @@ export async function submitLead(payload: LeadPayload, webhookUrl: string): Prom
     monthly_leads: payload.monthlyLeads,
     team_size: payload.teamSize,
     main_challenge: payload.mainChallenge,
+    tools: payload.tools,
     source: payload.source,
     page_url: payload.pageUrl,
     utm: payload.utm,
@@ -187,6 +198,7 @@ export async function submitLead(payload: LeadPayload, webhookUrl: string): Prom
       monthly_leads: payload.monthlyLeads,
       team_size: payload.teamSize,
       main_challenge: payload.mainChallenge,
+      tools: payload.tools,
       source: payload.source,
       page_url: payload.pageUrl,
       submitted_at: new Date().toISOString(),
@@ -196,6 +208,7 @@ export async function submitLead(payload: LeadPayload, webhookUrl: string): Prom
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(webhookBody),
+      keepalive: true,
     }).catch(() => {});
   }
 }
