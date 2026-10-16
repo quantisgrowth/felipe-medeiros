@@ -181,18 +181,31 @@ function AdminLoginPage() {
               <Label htmlFor="password" className="text-inverse-muted">
                 Senha
               </Label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                className="form-control mt-1.5"
-              />
+              <div className="relative mt-1.5">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  className="form-control pr-12"
+                />
+                <Button {...toggleButtonProps(showPassword, () => setShowPassword((v) => !v))}>
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </div>
             <Button type="submit" size="lg" disabled={loading} className="button-gold w-full">
               {loading ? "Entrando…" : "Entrar"}
             </Button>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={resetLoading}
+              className="mx-auto block text-xs font-bold text-inverse-muted underline underline-offset-4 transition-colors hover:text-gold-light disabled:opacity-60"
+            >
+              {resetLoading ? "Enviando link…" : "Esqueci minha senha"}
+            </button>
           </form>
         )}
 
