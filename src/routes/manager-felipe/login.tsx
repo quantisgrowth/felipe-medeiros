@@ -219,29 +219,43 @@ function AdminLoginPage() {
               <Label htmlFor="password" className="text-inverse-muted">
                 Nova senha
               </Label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className="form-control mt-1.5"
-              />
+              <div className="relative mt-1.5">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="form-control pr-12"
+                />
+                <Button {...toggleButtonProps(showPassword, () => setShowPassword((v) => !v))}>
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </div>
             <div>
               <Label htmlFor="confirmPassword" className="text-inverse-muted">
                 Confirmar senha
               </Label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className="form-control mt-1.5"
-              />
+              <div className="relative mt-1.5">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="form-control pr-12"
+                />
+                <Button
+                  {...toggleButtonProps(showConfirmPassword, () =>
+                    setShowConfirmPassword((v) => !v),
+                  )}
+                >
+                  {showConfirmPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </div>
             <Button type="submit" size="lg" disabled={loading} className="button-gold w-full">
               {loading ? "Salvando…" : "Salvar senha e entrar"}
