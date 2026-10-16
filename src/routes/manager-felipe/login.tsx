@@ -97,6 +97,34 @@ function AdminLoginPage() {
     navigate({ to: "/manager-felipe" });
   }
 
+  async function handleForgotPassword() {
+    const emailInput = document.querySelector<HTMLInputElement>("#email");
+    const email = emailInput?.value.trim() ?? "";
+
+    if (!email) {
+      toast.error("Digite seu e-mail primeiro", {
+        description: "Informe o e-mail do admin no campo acima para receber o link.",
+      });
+      emailInput?.focus();
+      return;
+    }
+
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/manager-felipe/login`,
+    });
+    setResetLoading(false);
+
+    if (error) {
+      toast.error("Não foi possível enviar o link", { description: error.message });
+      return;
+    }
+    toast.success("Link de redefinição enviado", {
+      description: `Confira a caixa de entrada de ${email}. Ao abrir o link, você definirá uma nova senha.`,
+      duration: 8000,
+    });
+  }
+
   async function handleSetPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
