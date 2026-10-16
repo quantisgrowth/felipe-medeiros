@@ -238,12 +238,12 @@ export function LeadForm() {
                         ) as HTMLInputElement;
                         phone?.setCustomValidity("");
                       }}
-                      className="w-28 shrink-0 rounded-l-lg border-r border-input bg-surface px-2 text-sm"
+                      className="w-24 shrink-0 rounded-l-lg border-r border-input bg-surface px-2 text-sm"
                       autoComplete="country"
                     >
                       {COUNTRIES.map((c) => (
                         <option key={c.code} value={c.code}>
-                          {c.flag} +{c.dial} {c.name}
+                          {c.flag} +{c.dial}
                         </option>
                       ))}
                     </select>
