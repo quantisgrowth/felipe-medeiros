@@ -168,7 +168,7 @@ export type LeadPayload = {
  */
 export async function submitLead(payload: LeadPayload, webhookUrl: string): Promise<void> {
   const supabase = getSupabaseClient();
-  const { error } = await supabase.from("leads").insert({
+  const record = {
     name: payload.name,
     company: payload.company,
     role: payload.role,
@@ -182,7 +182,18 @@ export async function submitLead(payload: LeadPayload, webhookUrl: string): Prom
     source: payload.source,
     page_url: payload.pageUrl,
     utm: payload.utm,
-  });
+  };
+  let { error } = await supabase.from("leads").insert(record);
+  // A missing-column response rejects the insert before a row is written.
+  // Retry only that schema mismatch, preserving the new answers in an existing field.
+  if (error && ["PGRST204", "42703"].includes(error.code) && /\btools\b/i.test(error.message)) {
+    const { tools, ...legacyRecord } = record;
+    const result = await supabase.from("leads").insert({
+      ...legacyRecord,
+      main_challenge: `${payload.mainChallenge}\n\nFerramentas atuais: ${tools.length ? tools.join(", ") : "Nenhuma informada"}`,
+    });
+    error = result.error;
+  }
 
   if (error) throw error;
 
