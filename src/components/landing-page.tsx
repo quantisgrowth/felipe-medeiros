@@ -33,10 +33,11 @@ import { getSafeExternalUrl, getWhatsAppUrl, submitLead, UTM_KEYS } from "@/lib/
 import { useSiteSettings } from "@/lib/site-settings-context";
 
 const navItems = [
+  ["Sobre", "sobre"],
+  ["Produtos e serviços", "/produtos-e-servicos"],
   ["Solução", "solucao"],
   ["Como funciona", "como-funciona"],
   ["Implantação", "implantacao"],
-  ["Sobre", "sobre"],
   ["FAQ", "faq"],
 ] as const;
 const problems = [
@@ -297,16 +298,10 @@ export function Header() {
           className="hidden items-center justify-center gap-5 xl:flex"
           aria-label="Navegação principal"
         >
-          <a
-            href="/produtos-e-servicos"
-            className="text-sm font-medium text-inverse-muted transition-colors hover:text-gold-light"
-          >
-            Produtos e serviços
-          </a>
           {navItems.map(([label, id]) => (
             <a
               key={id}
-              href={`/#${id}`}
+              href={id.startsWith("/") ? id : `/#${id}`}
               className="text-sm font-medium text-inverse-muted transition-colors hover:text-gold-light"
             >
               {label}
@@ -317,7 +312,7 @@ export function Header() {
           <Button asChild className="button-gold hidden px-3 min-[360px]:inline-flex sm:px-6">
             <a href="/#diagnostico">
               <span className="sm:hidden">Diagnóstico</span>
-              <span className="hidden sm:inline">Agendar diagnóstico</span>
+              <span className="hidden sm:inline">Solicitar diagnóstico</span>
               <ArrowRight />
             </a>
           </Button>
@@ -339,17 +334,10 @@ export function Header() {
           aria-label="Navegação para celular"
         >
           <div className="mx-auto grid max-w-7xl gap-1">
-            <a
-              href="/produtos-e-servicos"
-              onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-3 text-sm font-medium text-inverse hover:bg-inverse/10"
-            >
-              Produtos e serviços
-            </a>
             {navItems.map(([label, id]) => (
               <a
                 key={id}
-                href={`/#${id}`}
+                href={id.startsWith("/") ? id : `/#${id}`}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-3 text-sm font-medium text-inverse hover:bg-inverse/10"
               >
@@ -358,7 +346,7 @@ export function Header() {
             ))}
             <Button asChild className="button-gold mt-2 min-[360px]:hidden">
               <a href="/#diagnostico" onClick={() => setOpen(false)}>
-                Agendar diagnóstico <ArrowRight />
+                Solicitar diagnóstico <ArrowRight />
               </a>
             </Button>
           </div>
@@ -380,13 +368,13 @@ export function Hero() {
         <div className="relative z-10 max-w-3xl">
           <p className="eyebrow">Estratégia comercial • IA • Automação</p>
           <h1 className="hero-title text-inverse">
-            Transforme leads dispersos em uma operação comercial que acompanha, qualifica e avança{" "}
-            <Emphasis>cada oportunidade.</Emphasis>
+            Estratégia comercial para crescer.{" "}
+            <Emphasis>Pessoas, processos e tecnologia para executar.</Emphasis>
           </h1>
           <p className="mt-7 max-w-2xl text-lg leading-8 text-inverse-muted">
-            Eu identifico os gargalos da sua operação e implemento processos, CRM, inteligência
-            artificial e automações para sua empresa atender melhor, acompanhar os leads e vender
-            com mais controle.
+            Treinamento de vendas, consultoria e mentoria de gestão para desenvolver sua equipe e
+            organizar o comercial. Implementação de CRM, IA e automações para colocar o plano em
+            prática.
           </p>
           <p className="strategy-statement">
             Estratégia comercial para entender o problema. Tecnologia para implementar a solução.
@@ -394,7 +382,7 @@ export function Hero() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className="button-gold">
               <a href="#diagnostico">
-                Agendar diagnóstico estratégico <ArrowRight />
+                Solicitar diagnóstico estratégico <ArrowRight />
               </a>
             </Button>
             <WhatsAppLink label="Falar com Felipe" className="button-outline-dark">
@@ -810,7 +798,7 @@ export function DiagnosticCTA() {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className="button-gold">
               <a href="#diagnostico">
-                Agendar meu diagnóstico <ArrowRight />
+                Solicitar meu diagnóstico <ArrowRight />
               </a>
             </Button>
             <WhatsAppLink
@@ -894,7 +882,8 @@ export function LeadForm() {
           <p className="eyebrow">Solicite uma análise</p>
           <h2 className="section-title text-foreground">Conte um pouco sobre sua operação.</h2>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            Essas informações me ajudarão a compreender seu cenário antes da nossa conversa.
+            Preencha o formulário para solicitar seu diagnóstico. Entrarei em contato para entender
+            seu cenário e combinar o melhor horário para a conversa.
           </p>
           <div className="mt-10 space-y-6">
             <div className="flex gap-4">
@@ -1122,7 +1111,7 @@ export function FinalCTA() {
         <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild size="lg" className="button-gold">
             <a href="#diagnostico">
-              Agendar diagnóstico estratégico <ArrowRight />
+              Solicitar diagnóstico estratégico <ArrowRight />
             </a>
           </Button>
           <WhatsAppLink
@@ -1208,6 +1197,64 @@ export function FloatingWhatsApp() {
   );
 }
 
+function OfferOverview() {
+  const offers = [
+    [
+      "Treinamento de Vendas",
+      "Prospecção, diagnóstico online e fechamento para desenvolver a atuação comercial da equipe.",
+      "treinamento-de-vendas",
+    ],
+    [
+      "Consultoria de Gestão",
+      "Assessment do processo e melhorias com playbooks e ferramentas para organizar a operação.",
+      "consultoria-de-gestao",
+    ],
+    [
+      "Mentoria de Gestão",
+      "Análise de indicadores e construção de um plano estratégico para gestores e donos de negócios.",
+      "mentoria-de-gestao",
+    ],
+  ] as const;
+  return (
+    <section id="solucao" className="section-space scroll-mt-24">
+      <div className="container-shell">
+        <SectionHeading align="left" eyebrow="Produtos e serviços">
+          O apoio certo para o momento da sua empresa.
+        </SectionHeading>
+        <div className="mt-10 grid gap-8 lg:grid-cols-3">
+          {offers.map(([name, text, id]) => (
+            <article key={id} className="flex flex-col border-t-2 border-gold pt-6">
+              <h3 className="text-xl font-bold">{name}</h3>
+              <p className="mb-5 mt-4 flex-1 leading-7 text-muted-foreground">{text}</p>
+              <a
+                href={`/produtos-e-servicos#${id}`}
+                className="inline-flex min-h-11 items-center gap-2 font-bold underline underline-offset-4"
+              >
+                Conhecer {name.toLowerCase()}{" "}
+                <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+              </a>
+            </article>
+          ))}
+        </div>
+        <div className="mt-12 grid gap-6 border-t border-border pt-8 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <h3 className="text-xl font-bold">Implementação de ferramentas</h3>
+            <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
+              DataCrazy, Manychat, GPT Maker e Google Agenda, com escopo alinhado ao seu processo.
+              Partner DataCrazy.
+            </p>
+          </div>
+          <Button asChild className="button-gold">
+            <a href="/produtos-e-servicos#implementacoes">
+              Ver implementações <ArrowRight aria-hidden="true" />
+            </a>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function LandingPage() {
   return (
     <>
@@ -1215,20 +1262,14 @@ export function LandingPage() {
       <main>
         <Hero />
         <AuthorityBar />
-        <Problems />
-        <Manifesto />
-        <SolutionCards />
-        <ProcessFlow />
-        <BeforeAfter />
-        <Methodology />
-        <Deliverables />
-        <Qualification />
-        <Technologies />
         <About />
+        <Problems />
+        <OfferOverview />
+        <ProcessFlow />
+        <Methodology />
         <DiagnosticCTA />
         <LeadForm />
         <FAQ />
-        <FinalCTA />
       </main>
       <Footer />
       <FloatingWhatsApp />
