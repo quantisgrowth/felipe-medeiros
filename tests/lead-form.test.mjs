@@ -5,7 +5,7 @@ import ts from 'typescript';
 const moduleUrl = source => 'data:text/javascript;base64,' + Buffer.from(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText).toString('base64');
 const optionsUrl = moduleUrl(readFileSync(new URL('../src/lib/form-options.ts', import.meta.url), 'utf8'));
 const options = await import(optionsUrl);
-const stubUrl = moduleUrl('export function getSupabaseClient() { return globalThis.testSupabase; }');
+const stubUrl = moduleUrl('export function getSupabaseClient() { throw new Error("Public form must not use Manager session"); } export function getPublicSupabaseClient() { return globalThis.testSupabase; }');
 const settingsUrl = moduleUrl(readFileSync(new URL('../src/lib/site-settings.ts', import.meta.url), 'utf8').replace('"./supabase"', JSON.stringify(stubUrl)).replace('"./form-options"', JSON.stringify(optionsUrl)));
 const { submitLead, settingsToRow, DEFAULT_SITE_SETTINGS } = await import(settingsUrl);
 const payload = { name:'Teste', company:'Empresa', role:'Gestor', whatsapp:'+5511999999999', email:'teste@example.com', segment:'Tecnologia', monthlyLeads:'Até 50', teamSize:'1 pessoa', mainChallenge:'Organizar a operação', tools:['CRM','WhatsApp'], source:'test',pageUrl:'https://example.com',utm:{utm_source:'test'} };
@@ -64,4 +64,17 @@ test('não repete gravação em erro de permissão ou indisponibilidade', async 
     await assert.rejects(submitLead(payload,''));
     assert.equal(calls,1);
   } finally {delete globalThis.testSupabase;}
+});
+
+test('conexão pública é reutilizada e não persiste nem renova sessão do Manager', async () => {
+  const configurations = [];
+  globalThis.testCreateClient = (_url, _key, config) => {configurations.push(config); return {kind:'public'};};
+  const sdkStub = moduleUrl('export const createClient = (...args) => globalThis.testCreateClient(...args);');
+  const source = readFileSync(new URL('../src/lib/supabase.ts', import.meta.url),'utf8').replace('"@supabase/supabase-js"',JSON.stringify(sdkStub));
+  try {
+    const clientModule = await import(moduleUrl(source));
+    assert.equal(clientModule.getPublicSupabaseClient(),clientModule.getPublicSupabaseClient());
+    assert.equal(configurations.length,1);
+    assert.deepEqual(configurations[0].auth,{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'public-lead-form'});
+  } finally {delete globalThis.testCreateClient;}
 });

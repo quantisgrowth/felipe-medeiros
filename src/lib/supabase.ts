@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 // Chaves públicas (anon/publishable) — seguras para expor no navegador.
 // A leitura pública da tabela site_settings e do bucket site-photos é
 // intencional (ver policies no Supabase); nada sensível fica aqui.
-const SUPABASE_URL = "https://cnstabbralxsvftsvxug.supabase.co";
+export const SUPABASE_URL = "https://cnstabbralxsvftsvxug.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuc3RhYmJyYWx4c3ZmdHN2eHVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0OTExMDIsImV4cCI6MjEwNTA2NzEwMn0.RN1SkYZ0htUnDcfrhc9rPJIYfyWKDuTblJEFgdNHsmY";
 
@@ -30,3 +30,20 @@ export function getSupabaseClient(): SupabaseClient {
 }
 
 export const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+
+// Public form writes use the anon role independently of a Manager session.
+// An expired admin session must not hold a public submission behind token refresh.
+let publicClient: SupabaseClient | undefined;
+export function getPublicSupabaseClient(): SupabaseClient {
+  if (!publicClient) {
+    publicClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        storageKey: "public-lead-form",
+      },
+    });
+  }
+  return publicClient;
+}
