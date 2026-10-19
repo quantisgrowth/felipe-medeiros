@@ -365,39 +365,32 @@ export function Hero() {
       <div className="hero-wordmark" aria-hidden="true">
         ESTRATÉGIA
       </div>
-      <div className="container-shell relative grid items-start gap-12 pb-16 pt-32 lg:min-h-[760px] lg:grid-cols-[1.08fr_.92fr] lg:pb-24 lg:pt-36">
+      <div className="container-shell relative grid items-start gap-12 pb-14 pt-28 lg:min-h-[680px] lg:grid-cols-[1.08fr_.92fr] lg:pb-16 lg:pt-28">
         <div className="relative z-10 max-w-3xl">
-          <p className="eyebrow">Estratégia comercial • IA • Automação</p>
+          <p className="eyebrow">Consultoria comercial • Treinamento • Automação</p>
           <h1 className="hero-title text-inverse">
-            Estratégia comercial para crescer.{" "}
-            <Emphasis>Pessoas, processos e tecnologia para executar.</Emphasis>
+            Organizo sua operação comercial para vender com{" "}
+            <Emphasis>mais controle e previsibilidade.</Emphasis>
           </h1>
           <p className="mt-7 max-w-2xl text-lg leading-8 text-inverse-muted">
-            Treinamento de vendas, consultoria e mentoria de gestão para desenvolver sua equipe e
-            organizar o comercial. Implementação de CRM, IA e automações para colocar o plano em
-            prática.
-          </p>
-          <p className="strategy-statement">
-            Estratégia comercial para entender o problema. Tecnologia para implementar a solução.
+            Identifico gargalos, treino sua equipe e implemento processos, CRM, inteligência
+            artificial e automações para reduzir perdas e dar visibilidade ao funil.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className="button-gold">
               <a href="#diagnostico">
-                Solicitar diagnóstico estratégico <ArrowRight />
+                Agendar diagnóstico de 30 minutos <ArrowRight />
               </a>
             </Button>
-            <WhatsAppLink label="Falar com Felipe" className="button-outline-dark">
-              <MessageCircle /> Falar com Felipe
-            </WhatsAppLink>
           </div>
           <p className="mt-5 flex items-start gap-2 text-sm text-inverse-muted">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-gold" /> Conversa estratégica de 30
-            minutos • Atendimento direto com Felipe Medeiros
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-gold" /> Atendimento direto com
+            Felipe Medeiros.
           </p>
         </div>
         <div
-          className="hero-portrait lg:mt-16 lg:self-start"
-          aria-label="Visão conceitual de uma operação comercial organizada"
+          className="hero-portrait lg:mt-10 lg:self-start"
+          aria-label="Resultados práticos de uma operação comercial organizada"
         >
           {settings.heroPhotoUrl ? (
             <SitePhoto
@@ -416,17 +409,19 @@ export function Hero() {
             </div>
           )}
           <div className="opportunity-panel">
-            <p className="text-[11px] font-bold uppercase text-gold">Visão da operação</p>
-            {["Entrada dos leads", "Qualificação", "Próxima ação"].map((item, index) => (
-              <div
-                key={item}
-                className="mt-3 flex items-center gap-3 border-t border-inverse/15 pt-3"
-              >
-                <span className="text-sm font-bold text-gold">0{index + 1}</span>
-                <span className="text-xs text-inverse">{item}</span>
-                <CheckCircle2 className="ml-auto size-4 text-success" />
-              </div>
-            ))}
+            <p className="text-[11px] font-bold uppercase text-gold">Na prática</p>
+            {["Leads organizados", "Follow-ups acompanhados", "Gestão do funil"].map(
+              (item, index) => (
+                <div
+                  key={item}
+                  className="mt-3 flex items-center gap-3 border-t border-inverse/15 pt-3"
+                >
+                  <span className="text-sm font-bold text-gold">0{index + 1}</span>
+                  <span className="text-xs text-inverse">{item}</span>
+                  <CheckCircle2 className="ml-auto size-4 text-success" />
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>
