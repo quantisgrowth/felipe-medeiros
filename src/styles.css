@@ -12,14 +12,14 @@
   --radius-sm: calc(var(--radius) - 3px); --radius-md: calc(var(--radius) - 2px); --radius-lg: var(--radius); --radius-xl: calc(var(--radius) + 2px); --radius-2xl: calc(var(--radius) + 4px);
   --color-background: var(--background); --color-foreground: var(--foreground); --color-card: var(--card); --color-card-foreground: var(--card-foreground); --color-popover: var(--popover); --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary); --color-primary-foreground: var(--primary-foreground); --color-secondary: var(--secondary); --color-secondary-foreground: var(--secondary-foreground); --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground); --color-accent: var(--accent); --color-accent-foreground: var(--accent-foreground); --color-destructive: var(--destructive); --color-destructive-foreground: var(--destructive-foreground); --color-border: var(--border); --color-input: var(--input); --color-ring: var(--ring); --color-ring-offset-background: var(--background);
-  --color-deep: var(--deep); --color-surface: var(--surface); --color-gold: var(--gold); --color-gold-light: var(--gold-light); --color-success: var(--success); --color-inverse: var(--inverse); --color-inverse-muted: var(--inverse-muted); --color-whatsapp: var(--whatsapp);
+  --color-deep: var(--deep); --color-surface: var(--surface); --color-gold: var(--gold); --color-gold-light: var(--gold-light); --color-gold-text: var(--gold-text); --color-success: var(--success); --color-inverse: var(--inverse); --color-inverse-muted: var(--inverse-muted); --color-whatsapp: var(--whatsapp);
 }
 
 :root {
   --radius: .625rem;
   --background: oklch(1 0 0); --foreground: oklch(0.25731 0.04119 238.65); --card: oklch(1 0 0); --card-foreground: oklch(0.25731 0.04119 238.65); --popover: oklch(1 0 0); --popover-foreground: oklch(0.25731 0.04119 238.65);
-  --primary: oklch(0.23018 0.05618 243.48); --primary-foreground: oklch(0.96764 0.00171 67.80); --secondary: oklch(0.96764 0.00171 67.80); --secondary-foreground: oklch(0.23018 0.05618 243.48); --muted: oklch(0.96764 0.00171 67.80); --muted-foreground: oklch(0.54552 0.02130 243.23); --accent: oklch(0.79327 0.08228 82.22); --accent-foreground: oklch(0.23018 0.05618 243.48); --destructive: oklch(0.577 0.245 27.325); --destructive-foreground: oklch(1 0 0); --border: oklch(0.88217 0.00422 91.45); --input: oklch(0.88217 0.00422 91.45); --ring: oklch(0.68224 0.08602 73.85);
-  --deep: oklch(0.20601 0.03804 233.91); --surface: oklch(0.96764 0.00171 67.80); --gold: oklch(0.68224 0.08602 73.85); --gold-light: oklch(0.79327 0.08228 82.22); --success: oklch(0.51865 0.09808 164.78); --inverse: oklch(0.96764 0.00171 67.80); --inverse-muted: oklch(0.805 0.014 235); --whatsapp: oklch(0.64 0.15 155);
+  --primary: oklch(0.23018 0.05618 243.48); --primary-foreground: oklch(0.96764 0.00171 67.80); --secondary: oklch(0.96764 0.00171 67.80); --secondary-foreground: oklch(0.23018 0.05618 243.48); --muted: oklch(0.96764 0.00171 67.80); --muted-foreground: oklch(0.46 0.023 243.23); --accent: oklch(0.79327 0.08228 82.22); --accent-foreground: oklch(0.23018 0.05618 243.48); --destructive: oklch(0.577 0.245 27.325); --destructive-foreground: oklch(1 0 0); --border: oklch(0.88217 0.00422 91.45); --input: oklch(0.88217 0.00422 91.45); --ring: oklch(0.68224 0.08602 73.85);
+  --deep: oklch(0.20601 0.03804 233.91); --surface: oklch(0.96764 0.00171 67.80); --gold: oklch(0.68224 0.08602 73.85); --gold-light: oklch(0.79327 0.08228 82.22); --gold-text: oklch(0.48 0.095 75); --success: oklch(0.51865 0.09808 164.78); --inverse: oklch(0.96764 0.00171 67.80); --inverse-muted: oklch(0.805 0.014 235); --whatsapp: oklch(0.64 0.15 155);
 }
 
 @layer base {
@@ -32,7 +32,7 @@
 
 @utility container-shell { width: min(100% - 2rem, 76rem); margin-inline: auto; }
 @utility section-space { padding-block: clamp(4rem, 8vw, 7.5rem); }
-@utility eyebrow { margin-bottom: 1.1rem; color: var(--gold); font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+@utility eyebrow { margin-bottom: 1.1rem; color: var(--gold-text); font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
 @utility section-title { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 400; line-height: 1.1; letter-spacing: 0; }
 @utility form-label { display: block; color: var(--foreground); font-size: .875rem; font-weight: 700; }
 @utility form-control { margin-top: .5rem; height: 3.25rem; width: 100%; border: 1px solid var(--input); border-radius: .5rem; background: var(--background); padding-inline: .875rem; color: var(--foreground); font-size: .9375rem; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease; &:focus { border-color: var(--gold); box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold) 18%, transparent); } }
@@ -42,6 +42,7 @@
 .button-gold { min-height: 3.25rem; border-radius: .5rem; background: var(--gold); padding-inline: 1.5rem; color: var(--primary); font-weight: 800; box-shadow: none; &:hover { background: var(--gold-light); color: var(--primary); } }
 .button-outline-dark { min-height: 3.25rem; border: 1px solid color-mix(in oklab, var(--inverse) 80%, transparent); border-radius: .5rem; background: transparent; padding-inline: 1.5rem; color: var(--inverse); font-weight: 800; box-shadow: none; &:hover { background: color-mix(in oklab, var(--inverse) 10%, transparent); color: var(--inverse); } }
 .editorial-emphasis { font-family: var(--font-serif); font-weight: 400; font-style: italic; color: var(--gold-light); }
+.hero-section .eyebrow, .bg-primary .eyebrow, .bg-deep .eyebrow { color: var(--gold-light); }
 .hero-section { position: relative; overflow: hidden; background: var(--deep); }
 .hero-title { font-size: clamp(2.5rem, 5.2vw, 4rem); font-weight: 400; line-height: 1.05; letter-spacing: 0; }
 .editorial-grid { position: absolute; inset: 0; opacity: .16; background-image: linear-gradient(color-mix(in oklab, var(--inverse) 16%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--inverse) 16%, transparent) 1px, transparent 1px); background-size: 88px 88px; mask-image: linear-gradient(to bottom right, black, transparent 72%); }

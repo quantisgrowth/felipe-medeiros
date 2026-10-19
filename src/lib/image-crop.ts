@@ -12,15 +12,15 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 
 /**
  * Recorta a imagem na área selecionada e redimensiona para no máximo
- * `maxDimension` pixels no lado maior, comprimindo em JPEG. Isso garante que,
+ * `maxDimension` pixels no lado maior, comprimindo em WebP. Isso garante que,
  * não importa o tamanho do arquivo original enviado, o resultado final fica
  * leve o suficiente para não pesar o carregamento do site.
  */
-export async function getCroppedImageBlob(
+async function renderCroppedImage(
   imageSrc: string,
   crop: CropPixels,
   maxDimension: number,
-  quality = 0.85,
+  quality: number,
 ): Promise<Blob> {
   const image = await loadImage(imageSrc);
 
@@ -39,8 +39,31 @@ export async function getCroppedImageBlob(
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Falha ao gerar a imagem."))),
-      "image/jpeg",
+      "image/webp",
       quality,
     );
   });
+}
+
+export type CroppedImageVariants = {
+  large: Blob;
+  small: Blob;
+};
+
+/**
+ * Produz duas versões WebP do mesmo recorte. A menor atende celulares e a
+ * maior mantém nitidez em telas amplas, sem enviar a foto original para todos.
+ */
+export async function getCroppedImageVariants(
+  imageSrc: string,
+  crop: CropPixels,
+  maxDimension: number,
+  smallDimension: number,
+): Promise<CroppedImageVariants> {
+  const [large, small] = await Promise.all([
+    renderCroppedImage(imageSrc, crop, maxDimension, 0.78),
+    renderCroppedImage(imageSrc, crop, smallDimension, 0.76),
+  ]);
+
+  return { large, small };
 }

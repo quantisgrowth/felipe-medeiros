@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhotoCropDialog } from "@/components/photo-crop-dialog";
+import type { CroppedImageVariants } from "@/lib/image-crop";
 import { getSupabaseClient } from "@/lib/supabase";
 import { settingsToRow, type SiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site-settings";
 
@@ -243,7 +244,8 @@ export function AdminDashboard() {
                 value={settings.heroPhotoUrl}
                 onUploaded={(url) => update("heroPhotoUrl", url)}
                 aspect={4 / 5}
-                maxDimension={1600}
+                maxDimension={1200}
+                smallDimension={600}
                 recommendedDimensions="1600×2000px (retrato, proporção 4:5)"
                 maxSourceMB={15}
               />
@@ -252,7 +254,8 @@ export function AdminDashboard() {
                 value={settings.aboutPhotoUrl}
                 onUploaded={(url) => update("aboutPhotoUrl", url)}
                 aspect={1}
-                maxDimension={1200}
+                maxDimension={480}
+                smallDimension={256}
                 recommendedDimensions="1200×1200px (quadrada)"
                 maxSourceMB={10}
                 circular
@@ -356,6 +359,7 @@ function PhotoField({
   onUploaded,
   aspect,
   maxDimension,
+  smallDimension,
   recommendedDimensions,
   maxSourceMB,
   circular = false,
@@ -365,6 +369,7 @@ function PhotoField({
   onUploaded: (url: string) => void;
   aspect: number;
   maxDimension: number;
+  smallDimension: number;
   recommendedDimensions: string;
   maxSourceMB: number;
   circular?: boolean;
@@ -389,24 +394,34 @@ function PhotoField({
     reader.readAsDataURL(file);
   }
 
-  async function handleCropConfirm(blob: Blob) {
+  async function handleCropConfirm({ large, small }: CroppedImageVariants) {
     setPendingImageSrc(null);
     setUploading(true);
 
-    const path = `${crypto.randomUUID()}.jpg`;
-    const { error } = await supabase.storage.from("site-photos").upload(path, blob, {
-      upsert: true,
-      cacheControl: "3600",
-      contentType: "image/jpeg",
-    });
+    const imageId = crypto.randomUUID();
+    const largePath = `${imageId}-large.webp`;
+    const smallPath = `${imageId}-small.webp`;
+    const [largeUpload, smallUpload] = await Promise.all([
+      supabase.storage.from("site-photos").upload(largePath, large, {
+        upsert: false,
+        cacheControl: "31536000",
+        contentType: "image/webp",
+      }),
+      supabase.storage.from("site-photos").upload(smallPath, small, {
+        upsert: false,
+        cacheControl: "31536000",
+        contentType: "image/webp",
+      }),
+    ]);
     setUploading(false);
 
-    if (error) {
-      toast.error("Não foi possível enviar a foto", { description: error.message });
+    const uploadError = largeUpload.error ?? smallUpload.error;
+    if (uploadError) {
+      toast.error("Não foi possível enviar a foto", { description: uploadError.message });
       return;
     }
 
-    const { data } = supabase.storage.from("site-photos").getPublicUrl(path);
+    const { data } = supabase.storage.from("site-photos").getPublicUrl(largePath);
     onUploaded(data.publicUrl);
     toast.success('Foto enviada! Clique em "Salvar alterações" para publicar.');
   }
@@ -454,6 +469,7 @@ function PhotoField({
           imageSrc={pendingImageSrc}
           aspect={aspect}
           maxDimension={maxDimension}
+          smallDimension={smallDimension}
           onCancel={() => setPendingImageSrc(null)}
           onConfirm={handleCropConfirm}
         />
