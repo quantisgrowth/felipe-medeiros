@@ -10,20 +10,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
-import { getCroppedImageBlob } from "@/lib/image-crop";
+import { getCroppedImageVariants, type CroppedImageVariants } from "@/lib/image-crop";
 
 export function PhotoCropDialog({
   imageSrc,
   aspect,
   maxDimension,
+  smallDimension,
   onCancel,
   onConfirm,
 }: {
   imageSrc: string;
   aspect: number;
   maxDimension: number;
+  smallDimension: number;
   onCancel: () => void;
-  onConfirm: (blob: Blob) => void;
+  onConfirm: (variants: CroppedImageVariants) => void;
 }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -38,8 +40,13 @@ export function PhotoCropDialog({
     if (!croppedAreaPixels) return;
     setProcessing(true);
     try {
-      const blob = await getCroppedImageBlob(imageSrc, croppedAreaPixels, maxDimension);
-      onConfirm(blob);
+      const variants = await getCroppedImageVariants(
+        imageSrc,
+        croppedAreaPixels,
+        maxDimension,
+        smallDimension,
+      );
+      onConfirm(variants);
     } finally {
       setProcessing(false);
     }

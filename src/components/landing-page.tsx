@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
 import { getSafeExternalUrl, getWhatsAppUrl } from "@/lib/site-settings";
 import { useSiteSettings } from "@/lib/site-settings-context";
+import { SitePhoto } from "@/components/site-photo";
 
 const navItems = [
   ["Sobre", "sobre"],
@@ -364,7 +365,7 @@ export function Hero() {
       <div className="hero-wordmark" aria-hidden="true">
         ESTRATÉGIA
       </div>
-      <div className="container-shell relative grid items-center gap-12 pb-16 pt-32 lg:min-h-[760px] lg:grid-cols-[1.08fr_.92fr] lg:pb-24 lg:pt-36">
+      <div className="container-shell relative grid items-start gap-12 pb-16 pt-32 lg:min-h-[760px] lg:grid-cols-[1.08fr_.92fr] lg:pb-24 lg:pt-36">
         <div className="relative z-10 max-w-3xl">
           <p className="eyebrow">Estratégia comercial • IA • Automação</p>
           <h1 className="hero-title text-inverse">
@@ -395,12 +396,13 @@ export function Hero() {
           </p>
         </div>
         <div
-          className="hero-portrait"
+          className="hero-portrait lg:mt-16 lg:self-start"
           aria-label="Visão conceitual de uma operação comercial organizada"
         >
           {settings.heroPhotoUrl ? (
-            <img
-              src={settings.heroPhotoUrl}
+            <SitePhoto
+              url={settings.heroPhotoUrl}
+              kind="hero"
               alt="Felipe Medeiros"
               className="portrait-placeholder object-cover"
             />
@@ -735,8 +737,9 @@ export function About() {
           Estratégia de quem vive a operação e implementa a solução.
         </SectionHeading>
         {settings.aboutPhotoUrl && (
-          <img
-            src={settings.aboutPhotoUrl}
+          <SitePhoto
+            url={settings.aboutPhotoUrl}
+            kind="about"
             alt="Felipe Medeiros"
             className="mt-7 h-48 w-48 rounded-full object-cover"
           />
