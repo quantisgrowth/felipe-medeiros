@@ -368,7 +368,7 @@ export function Hero() {
       <div className="container-shell relative grid items-start gap-12 pb-14 pt-28 lg:min-h-[680px] lg:grid-cols-[1.08fr_.92fr] lg:pb-16 lg:pt-28">
         <div className="relative z-10 max-w-3xl">
           <p className="eyebrow">Consultoria comercial • Treinamento • Automação</p>
-          <h1 className="hero-title text-inverse">
+          <h1 className="page-title text-inverse">
             Organizo sua operação comercial para vender com{" "}
             <Emphasis>mais controle e previsibilidade.</Emphasis>
           </h1>

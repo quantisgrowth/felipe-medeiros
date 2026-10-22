@@ -155,7 +155,7 @@ function ProductsAndServices() {
             <div className="grid items-end gap-10 lg:grid-cols-[1.3fr_.7fr]">
               <div>
                 <p className="eyebrow">Produtos e serviços</p>
-                <h1 className="max-w-3xl text-4xl leading-tight sm:text-5xl lg:text-6xl">
+                <h1 className="page-title max-w-3xl">
                   Pessoas preparadas.
                   <br />
                   Gestão com direção.
