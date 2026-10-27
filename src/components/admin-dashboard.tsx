@@ -38,6 +38,21 @@ export function AdminDashboard() {
 
       setUserEmail(sessionData.session.user.email ?? "");
 
+      // Login alone is not admin authorization. The allowlist is enforced again by RLS.
+      const { data: membership, error: membershipError } = await supabase
+        .from("site_admins")
+        .select("user_id")
+        .eq("user_id", sessionData.session.user.id)
+        .maybeSingle();
+
+      if (membershipError || !membership) {
+        await supabase.auth.signOut();
+        setLoadState("unauthenticated");
+        toast.error("Esta conta não tem permissão para acessar o painel administrativo.");
+        navigate({ to: "/manager-felipe/login" });
+        return;
+      }
+
       const { data, error } = await supabase
         .from("site_settings")
         .select("whatsapp_number,whatsapp_message,email,linkedin_url,privacy_url,terms_url,ga_measurement_id,meta_pixel_id,footer_tagline,hero_photo_url,about_photo_url,form_roles,form_segments")
@@ -282,29 +297,11 @@ export function AdminDashboard() {
                   placeholder="000000000000000"
                 />
               </Field>
-              <Field
-                label="Scripts customizados (avançado)"
-                hint="Cole aqui tags adicionais completas (ex.: TikTok Pixel, Google Ads, GTM). O conteúdo é inserido diretamente no <head> do site — use com cuidado, só cole scripts em que você confia."
-              >
-                <textarea
-                  className="form-control h-auto resize-y py-3 font-mono text-xs"
-                  rows={6}
-                  value={settings.customHeadScripts}
-                  onChange={(e) => update("customHeadScripts", e.target.value)}
-                  placeholder="<script>...</script>"
-                />
-              </Field>
-              <Field
-                label="Webhook de leads (opcional, avançado)"
-                hint="Se você usa n8n ou outra automação, cole aqui a URL que deve receber cada solicitação do formulário em paralelo. Não é obrigatório: os leads já ficam salvos e visíveis na aba 'Leads' mesmo sem isso."
-              >
-                <input
-                  className="form-control"
-                  value={settings.leadWebhookUrl}
-                  onChange={(e) => update("leadWebhookUrl", e.target.value)}
-                  placeholder="https://seu-n8n.com/webhook/..."
-                />
-              </Field>
+              <p className="rounded-md border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                Scripts customizados foram desativados por segurança. A URL do webhook é configurada
+                exclusivamente como segredo de servidor no ambiente de hospedagem; não cole segredos
+                neste painel.
+              </p>
             </TabsContent>
 
             <div className="sticky bottom-4 mt-6 flex justify-end">
@@ -504,11 +501,16 @@ function LeadsList() {
   useEffect(() => {
     let active = true;
     async function loadNotificationEmail() {
-      const { data } = await supabase
-        .from("site_settings")
+      const { data, error } = await supabase
+        .from("site_settings_private")
         .select("notification_email")
         .eq("id", true)
         .maybeSingle();
+      if (active && error) {
+        toast.error("Não foi possível carregar o e-mail de notificação.", {
+          description: error.message,
+        });
+      }
       if (active && data) setNotificationEmail(data.notification_email);
     }
     loadNotificationEmail();
@@ -521,9 +523,14 @@ function LeadsList() {
   async function handleSaveEmail(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSavingEmail(true);
+    const { data: sessionData } = await supabase.auth.getSession();
     const { error } = await supabase
-      .from("site_settings")
-      .update({ notification_email: notificationEmail })
+      .from("site_settings_private")
+      .update({
+        notification_email: notificationEmail.trim(),
+        updated_at: new Date().toISOString(),
+        updated_by: sessionData.session?.user.id ?? null,
+      })
       .eq("id", true);
     setSavingEmail(false);
 
