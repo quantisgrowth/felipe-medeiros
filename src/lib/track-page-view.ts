@@ -5,9 +5,10 @@ import { getSupabaseClient } from "./supabase";
 
 // "Tempero" fixo só pra dificultar reversão trivial do hash — não é segredo
 // crítico, o objetivo é apenas evitar guardar o IP em texto puro.
-const IP_HASH_PEPPER = "felipe-medeiros-site-pv-2026";
+const IP_HASH_PEPPER = typeof process !== "undefined" ? process.env.IP_HASH_PEPPER ?? "" : "";
 
-async function hashIp(ip: string): Promise<string> {
+async function hashIp(ip: string): Promise<string | null> {
+  if (!IP_HASH_PEPPER) return null;
   const data = new TextEncoder().encode(`${IP_HASH_PEPPER}:${ip}`);
   const digest = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(digest))
@@ -65,7 +66,7 @@ export const recordPageView = createServerFn({ method: "POST" })
       const supabase = getSupabaseClient();
       await supabase.from("page_views").insert({
         path: data.path,
-        ip_hash: ipHash,
+        ip_hash: ipHash ?? `unavailable-${crypto.randomUUID()}`,
         user_agent: userAgent.slice(0, 300),
         device_type: deviceType,
         source,

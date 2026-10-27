@@ -1,3 +1,4 @@
+import { createServerFn } from "@tanstack/react-start";
 import { DEFAULT_ROLES, DEFAULT_SEGMENTS, normalizeOptions } from "./form-options";
 import { getSupabaseClient, getPublicSupabaseClient } from "./supabase";
 
@@ -55,8 +56,8 @@ type SiteSettingsRow = {
   footer_tagline: string;
   hero_photo_url: string;
   about_photo_url: string;
-  lead_webhook_url: string;
-  notification_email: string;
+  lead_webhook_url?: string;
+  notification_email?: string;
   form_roles?: string[];
   form_segments?: string[];
 };
@@ -71,12 +72,14 @@ function rowToSettings(row: SiteSettingsRow): SiteSettings {
     termsUrl: row.terms_url,
     gaMeasurementId: row.ga_measurement_id,
     metaPixelId: row.meta_pixel_id,
-    customHeadScripts: row.custom_head_scripts,
+    // Arbitrary custom scripts are intentionally not exposed to the public client.
+    customHeadScripts: "",
     footerTagline: row.footer_tagline || DEFAULT_SITE_SETTINGS.footerTagline,
     heroPhotoUrl: row.hero_photo_url,
     aboutPhotoUrl: row.about_photo_url,
-    leadWebhookUrl: row.lead_webhook_url,
-    notificationEmail: row.notification_email,
+    // These settings are private and are only read by authenticated admin/server code.
+    leadWebhookUrl: "",
+    notificationEmail: "",
     formRoles: normalizeOptions(row.form_roles, DEFAULT_ROLES),
     formSegments: normalizeOptions(row.form_segments, DEFAULT_SEGMENTS),
   };
@@ -113,7 +116,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("site_settings")
-      .select("*")
+      .select("whatsapp_number,whatsapp_message,email,linkedin_url,privacy_url,terms_url,ga_measurement_id,meta_pixel_id,footer_tagline,hero_photo_url,about_photo_url,form_roles,form_segments")
       .eq("id", true)
       .maybeSingle();
 
@@ -162,44 +165,65 @@ export type LeadPayload = {
 };
 
 /**
- * Salva a solicitação direto no Supabase (sempre funciona, é a fonte da
- * verdade) e, se um webhook externo estiver configurado, também tenta
- * encaminhar pra lá — mas isso nunca bloqueia nem falha o envio principal.
+ * Valida no servidor os dados recebidos do formulário público.
+ * A validação do navegador é útil para UX, mas não é uma barreira de segurança.
  */
-export async function submitLead(payload: LeadPayload, webhookUrl: string): Promise<void> {
-  const supabase = getPublicSupabaseClient();
-  const record = {
-    name: payload.name,
-    company: payload.company,
-    role: payload.role,
-    whatsapp: payload.whatsapp,
-    email: payload.email,
-    segment: payload.segment,
-    monthly_leads: payload.monthlyLeads,
-    team_size: payload.teamSize,
-    main_challenge: payload.mainChallenge,
-    tools: payload.tools,
-    source: payload.source,
-    page_url: payload.pageUrl,
-    utm: payload.utm,
+function validateLeadPayload(data: unknown): LeadPayload {
+  if (typeof data !== "object" || data === null) throw new Error("Dados do formulário inválidos.");
+  const input = data as Record<string, unknown>;
+  const textField = (key: string, max: number, required = false) => {
+    const value = input[key];
+    if (typeof value !== "string") {
+      if (required) throw new Error("Campo obrigatório inválido.");
+      return "";
+    }
+    const normalized = value.trim().slice(0, max);
+    if (required && !normalized) throw new Error("Preencha os campos obrigatórios.");
+    return normalized;
   };
-  let { error } = await supabase.from("leads").insert(record);
-  // A missing-column response rejects the insert before a row is written.
-  // Retry only that schema mismatch, preserving the new answers in an existing field.
-  if (error && ["PGRST204", "42703"].includes(error.code) && /\btools\b/i.test(error.message)) {
-    const { tools, ...legacyRecord } = record;
-    const result = await supabase.from("leads").insert({
-      ...legacyRecord,
-      main_challenge: `${payload.mainChallenge}\n\nFerramentas atuais: ${tools.length ? tools.join(", ") : "Nenhuma informada"}`,
-    });
-    error = result.error;
+  const toolsInput = input.tools;
+  const tools = Array.isArray(toolsInput)
+    ? toolsInput.filter((item): item is string => typeof item === "string").slice(0, 30).map((item) => item.trim().slice(0, 100))
+    : [];
+  const utmInput = typeof input.utm === "object" && input.utm !== null
+    ? (input.utm as Record<string, unknown>)
+    : {};
+  const utm: Record<string, string> = {};
+  for (const key of UTM_KEYS) {
+    const value = utmInput[key];
+    if (typeof value === "string" && value.trim()) utm[key] = value.trim().slice(0, 200);
   }
 
-  if (error) throw error;
+  const email = textField("email", 254, true);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("E-mail inválido.");
 
-  if (isConfigured(webhookUrl)) {
-    // melhor esforço: se o webhook externo falhar, o lead já está salvo.
-    const webhookBody = {
+  return {
+    name: textField("name", 150, true),
+    company: textField("company", 200, true),
+    role: textField("role", 100, true),
+    whatsapp: textField("whatsapp", 30, true),
+    email,
+    segment: textField("segment", 100, true),
+    monthlyLeads: textField("monthlyLeads", 100, true),
+    teamSize: textField("teamSize", 100, true),
+    mainChallenge: textField("mainChallenge", 2000, true),
+    tools,
+    source: textField("source", 100),
+    pageUrl: textField("pageUrl", 2000),
+    utm,
+  };
+}
+
+/**
+ * Salva o lead no servidor e encaminha ao webhook configurado no banco.
+ * A URL privada do webhook nunca é enviada ao navegador.
+ */
+export const submitLead = createServerFn({ method: "POST" })
+  .validator(validateLeadPayload)
+  .handler(async ({ data }) => {
+    const payload = data;
+    const supabase = getPublicSupabaseClient();
+    const record = {
       name: payload.name,
       company: payload.company,
       role: payload.role,
@@ -212,14 +236,45 @@ export async function submitLead(payload: LeadPayload, webhookUrl: string): Prom
       tools: payload.tools,
       source: payload.source,
       page_url: payload.pageUrl,
-      submitted_at: new Date().toISOString(),
-      ...payload.utm,
+      utm: payload.utm,
     };
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(webhookBody),
-      keepalive: true,
-    }).catch(() => {});
-  }
-}
+    let { error } = await supabase.from("leads").insert(record);
+
+    // Compatibilidade com schemas antigos que ainda não possuem a coluna tools.
+    if (error && ["PGRST204", "42703"].includes(error.code) && /\\btools\\b/i.test(error.message)) {
+      const { tools, ...legacyRecord } = record;
+      const result = await supabase.from("leads").insert({
+        ...legacyRecord,
+        main_challenge: `${payload.mainChallenge}\\n\\nFerramentas atuais: ${tools.length ? tools.join(", ") : "Nenhuma informada"}`,
+      });
+      error = result.error;
+    }
+    if (error) throw error;
+
+    try {
+      // Private webhook configuration must come from the server environment.
+      // Never read it through the public Supabase/anon client.
+      const webhookUrl =
+        typeof process !== "undefined" && typeof process.env.LEAD_WEBHOOK_URL === "string"
+          ? process.env.LEAD_WEBHOOK_URL.trim()
+          : "";
+      if (webhookUrl) {
+        const url = new URL(webhookUrl);
+        // Webhooks externos devem usar HTTPS; a URL permanece no servidor.
+        if (url.protocol === "https:") {
+          await fetch(url.toString(), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...record,
+              submitted_at: new Date().toISOString(),
+              ...payload.utm,
+            }),
+            signal: AbortSignal.timeout(4000),
+          });
+        }
+      }
+    } catch {
+      // O lead já foi salvo; falha do webhook não deve perder a solicitação.
+    }
+  });
