@@ -252,14 +252,12 @@ export const submitLead = createServerFn({ method: "POST" })
     if (error) throw error;
 
     try {
-      const { data: settings } = await supabase
-        .from("site_settings")
-        .select("lead_webhook_url")
-        .eq("id", true)
-        .maybeSingle();
-      const webhookUrl = typeof settings?.lead_webhook_url === "string"
-        ? settings.lead_webhook_url.trim()
-        : "";
+      // Private webhook configuration must come from the server environment.
+      // Never read it through the public Supabase/anon client.
+      const webhookUrl =
+        typeof process !== "undefined" && typeof process.env.LEAD_WEBHOOK_URL === "string"
+          ? process.env.LEAD_WEBHOOK_URL.trim()
+          : "";
       if (webhookUrl) {
         const url = new URL(webhookUrl);
         // Webhooks externos devem usar HTTPS; a URL permanece no servidor.
