@@ -40,7 +40,7 @@ export function AdminDashboard() {
 
       const { data, error } = await supabase
         .from("site_settings")
-        .select("*")
+        .select("whatsapp_number,whatsapp_message,email,linkedin_url,privacy_url,terms_url,ga_measurement_id,meta_pixel_id,footer_tagline,hero_photo_url,about_photo_url,form_roles,form_segments")
         .eq("id", true)
         .maybeSingle();
 
@@ -58,12 +58,12 @@ export function AdminDashboard() {
           termsUrl: data.terms_url,
           gaMeasurementId: data.ga_measurement_id,
           metaPixelId: data.meta_pixel_id,
-          customHeadScripts: data.custom_head_scripts,
+          customHeadScripts: "",
           footerTagline: data.footer_tagline,
           heroPhotoUrl: data.hero_photo_url,
           aboutPhotoUrl: data.about_photo_url,
-          leadWebhookUrl: data.lead_webhook_url,
-          notificationEmail: data.notification_email,
+          leadWebhookUrl: "",
+          notificationEmail: "",
           formRoles: normalizeOptions(data.form_roles, DEFAULT_ROLES),
           formSegments: normalizeOptions(data.form_segments, DEFAULT_SEGMENTS),
         });
@@ -88,7 +88,7 @@ export function AdminDashboard() {
     setSaving(true);
     const { error } = await supabase
       .from("site_settings")
-      .update(settingsToRow(settings))
+      .update((({ custom_head_scripts, lead_webhook_url, notification_email, ...publicSettings }) => publicSettings)(settingsToRow(settings)))
       .eq("id", true);
     setSaving(false);
 
