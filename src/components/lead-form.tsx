@@ -90,7 +90,7 @@ export function LeadForm() {
       if (value) utm[key] = value.slice(0, 200);
     });
     try {
-      await submitLead(
+      await submitLead({
         {
           name: String(data.get("name") ?? "").trim(),
           company: String(data.get("company") ?? "").trim(),
@@ -106,8 +106,7 @@ export function LeadForm() {
           pageUrl: window.location.href,
           utm,
         },
-        settings.leadWebhookUrl,
-      );
+      });
       setStatus("success");
       trackFormEvent("diagnostic_form_success");
     } catch {
