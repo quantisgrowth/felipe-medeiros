@@ -121,13 +121,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="pt-BR">
       <head>
         <HeadContent />
-        {/* Tags/pixels configurados no /manager-felipe pela equipe de tráfego (GA, Meta Pixel, GTM, etc.) */}
-        {siteSettings.customHeadScripts && (
-          <div
-            suppressHydrationWarning
-            dangerouslySetInnerHTML={{ __html: siteSettings.customHeadScripts }}
-          />
-        )}
+        {/* Scripts arbitrários vindos das configurações foram desativados por segurança. */}
       </head>
       <body>
         {children}
