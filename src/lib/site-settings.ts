@@ -181,12 +181,13 @@ function validateLeadPayload(data: unknown): LeadPayload {
     if (required && !normalized) throw new Error("Preencha os campos obrigatórios.");
     return normalized;
   };
-  const toolsInput = input.tools;
+  const toolsInput = input["tools"];
   const tools = Array.isArray(toolsInput)
     ? toolsInput.filter((item): item is string => typeof item === "string").slice(0, 30).map((item) => item.trim().slice(0, 100))
     : [];
-  const utmInput = typeof input.utm === "object" && input.utm !== null
-    ? (input.utm as Record<string, unknown>)
+  const utmRaw = input["utm"];
+  const utmInput = typeof utmRaw === "object" && utmRaw !== null
+    ? (utmRaw as Record<string, unknown>)
     : {};
   const utm: Record<string, string> = {};
   for (const key of UTM_KEYS) {
@@ -255,8 +256,8 @@ export const submitLead = createServerFn({ method: "POST" })
       // Private webhook configuration must come from the server environment.
       // Never read it through the public Supabase/anon client.
       const webhookUrl =
-        typeof process !== "undefined" && typeof process.env.LEAD_WEBHOOK_URL === "string"
-          ? process.env.LEAD_WEBHOOK_URL.trim()
+        typeof process !== "undefined" && typeof process.env["LEAD_WEBHOOK_URL"] === "string"
+          ? process.env["LEAD_WEBHOOK_URL"].trim()
           : "";
       if (webhookUrl) {
         const url = new URL(webhookUrl);

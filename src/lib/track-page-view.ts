@@ -5,7 +5,7 @@ import { getSupabaseClient } from "./supabase";
 
 // "Tempero" fixo só pra dificultar reversão trivial do hash — não é segredo
 // crítico, o objetivo é apenas evitar guardar o IP em texto puro.
-const IP_HASH_PEPPER = typeof process !== "undefined" ? process.env.IP_HASH_PEPPER ?? "" : "";
+const IP_HASH_PEPPER = typeof process !== "undefined" ? process.env["IP_HASH_PEPPER"] ?? "" : "";
 
 async function hashIp(ip: string): Promise<string | null> {
   if (!IP_HASH_PEPPER) return null;
