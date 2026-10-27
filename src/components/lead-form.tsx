@@ -91,6 +91,7 @@ export function LeadForm() {
     });
     try {
       await submitLead({
+        data: {
           name: String(data.get("name") ?? "").trim(),
           company: String(data.get("company") ?? "").trim(),
           role: String(data.get("role") ?? ""),
