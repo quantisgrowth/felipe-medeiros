@@ -256,8 +256,8 @@ export const submitLead = createServerFn({ method: "POST" })
       // Private webhook configuration must come from the server environment.
       // Never read it through the public Supabase/anon client.
       const webhookUrl =
-        typeof process !== "undefined" && typeof process.env.LEAD_WEBHOOK_URL === "string"
-          ? process.env.LEAD_WEBHOOK_URL.trim()
+        typeof process !== "undefined" && typeof process.env["LEAD_WEBHOOK_URL"] === "string"
+          ? process.env["LEAD_WEBHOOK_URL"].trim()
           : "";
       if (webhookUrl) {
         const url = new URL(webhookUrl);
