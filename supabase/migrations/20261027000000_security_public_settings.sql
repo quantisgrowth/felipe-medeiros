@@ -56,8 +56,9 @@ drop policy if exists "authenticated can read settings" on public.site_settings;
 drop policy if exists "authenticated can update settings" on public.site_settings;
 
 revoke all on public.site_settings from anon, authenticated;
+-- The id column must also be selectable because app queries filter with .eq("id", true).
 grant select (
-  whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url,
+  id, whatsapp_number, whatsapp_message, email, linkedin_url, privacy_url, terms_url,
   ga_measurement_id, meta_pixel_id, footer_tagline, hero_photo_url, about_photo_url,
   form_roles, form_segments
 ) on public.site_settings to anon, authenticated;
