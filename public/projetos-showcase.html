@@ -1,0 +1,622 @@
+<!-- Standalone Preview da Página de Projetos - Felipe Medeiros -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projetos e Ferramentas | Felipe Medeiros</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            deep: '#0a111a',
+            primary: '#121d2b',
+            surface: '#f4f5f7',
+            gold: '#c59b27',
+            goldLight: '#dfb743',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #fafbfc;
+      color: #141c26;
+    }
+    .font-serif {
+      font-family: 'Libre Baskerville', Georgia, serif;
+    }
+    .button-gold {
+      background: #c59b27;
+      color: #121d2b;
+      font-weight: 800;
+      transition: all 0.2s ease;
+    }
+    .button-gold:hover {
+      background: #dfb743;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-[#121d2b] border-b border-white/10 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto px-5 h-16 sm:h-20 flex items-center justify-between">
+      <a href="/" class="flex flex-col">
+        <span class="text-base sm:text-lg font-bold text-white tracking-tight">Felipe Medeiros</span>
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-white/60">Vendas • Estratégia • Automação</span>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <a href="/" class="text-white/70 hover:text-white transition-colors">Início</a>
+        <a href="/produtos-e-servicos" class="text-white/70 hover:text-white transition-colors">Produtos e serviços</a>
+        <a href="#projetos" class="text-[#dfb743] font-bold border-b-2 border-[#c59b27] pb-1">Projetos</a>
+      </nav>
+
+      <a href="/#diagnostico" class="button-gold text-xs sm:text-sm px-4 py-2.5 rounded-lg flex items-center gap-2">
+        <span>Solicitar diagnóstico</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="bg-[#0a111a] text-white py-16 sm:py-24 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px); background-size: 60px 60px;"></div>
+    
+    <div class="max-w-6xl mx-auto px-5 relative z-10">
+      <span class="text-[#dfb743] text-xs font-extrabold uppercase tracking-widest block mb-4">Showcase & Aplicações Práticas</span>
+      <h1 class="text-3xl sm:text-5xl font-bold leading-tight max-w-3xl">
+        Projetos, ferramentas de IA e <span class="font-serif italic font-normal text-[#dfb743]">diagnósticos comerciais.</span>
+      </h1>
+      <p class="mt-6 text-base sm:text-lg text-white/70 max-w-2xl leading-relaxed">
+        Soluções práticas desenvolvidas para acelerar vendas, qualificar leads e otimizar rotinas comerciais. Teste ferramentas interativas e veja a tecnologia funcionando em tempo real.
+      </p>
+
+      <!-- Category Filter Pills -->
+      <div class="mt-10 flex flex-wrap gap-2.5 pt-4 border-t border-white/10" id="filter-container">
+        <button onclick="filterCategory('todos')" data-category="todos" class="filter-btn active-filter px-4 py-2 rounded-full text-xs sm:text-sm font-bold bg-[#c59b27] text-[#121d2b] transition-all">
+          Todos (6)
+        </button>
+        <button onclick="filterCategory('ia')" data-category="ia" class="filter-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-white/10 text-white/80 hover:bg-white/15 hover:text-white transition-all">
+          Agentes & IA (2)
+        </button>
+        <button onclick="filterCategory('diagnostico')" data-category="diagnostico" class="filter-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-white/10 text-white/80 hover:bg-white/15 hover:text-white transition-all">
+          Diagnósticos & Calculadoras (2)
+        </button>
+        <button onclick="filterCategory('crm')" data-category="crm" class="filter-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-white/10 text-white/80 hover:bg-white/15 hover:text-white transition-all">
+          CRM & Automação (1)
+        </button>
+        <button onclick="filterCategory('web')" data-category="web" class="filter-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-white/10 text-white/80 hover:bg-white/15 hover:text-white transition-all">
+          Landing Pages (1)
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects Grid -->
+  <main class="max-w-6xl mx-auto px-5 py-12 sm:py-16 flex-1 w-full" id="projetos">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7" id="projects-grid">
+
+      <!-- Card 1: Calculadora de Perdas no Funil -->
+      <article class="project-card bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col" data-category="diagnostico">
+        <div class="h-44 bg-gradient-to-br from-[#121d2b] to-[#1e2f45] p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-[#c59b27]/10 rounded-full blur-xl"></div>
+          <div class="flex items-center justify-between z-10">
+            <span class="bg-[#c59b27]/20 text-[#dfb743] border border-[#c59b27]/30 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase">Diagnóstico</span>
+            <span class="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Interativo
+            </span>
+          </div>
+          <div class="z-10">
+            <p class="text-xs text-white/60 font-medium">Ferramenta Comercial</p>
+            <h3 class="text-lg font-bold text-white mt-0.5">Calculadora de Vazamento de Funil</h3>
+          </div>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Simula quanto dinheiro a empresa perde por mês com demora de resposta no WhatsApp e falta de follow-ups estruturados.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Simulação Financeira</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Tempo Real</span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+            <button onclick="openLiveDemo('calculadora')" class="button-gold text-xs font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 flex-1 justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+              <span>Testar Agora</span>
+            </button>
+            <button onclick="openDetails('calculadora')" class="text-xs font-semibold text-gray-600 hover:text-gray-900 px-2 py-2">
+              Detalhes
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2: Agente de IA para Qualificação SDR -->
+      <article class="project-card bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col" data-category="ia">
+        <div class="h-44 bg-gradient-to-br from-[#121d2b] to-[#253952] p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between z-10">
+            <span class="bg-[#c59b27]/20 text-[#dfb743] border border-[#c59b27]/30 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase">Agente de IA</span>
+            <span class="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Chat Ativo
+            </span>
+          </div>
+          <div class="z-10">
+            <p class="text-xs text-white/60 font-medium">WhatsApp SDR com IA</p>
+            <h3 class="text-lg font-bold text-white mt-0.5">Agente de Pré-Atendimento e Triagem</h3>
+          </div>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Demonstração de um agente inteligente treinado para coletar dados, qualificar faturamento e distribuir o lead direto para o vendedor certo.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">GPT Maker</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">WhatsApp API</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">n8n</span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+            <button onclick="openLiveDemo('agente-ia')" class="button-gold text-xs font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 flex-1 justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              <span>Simular Chat</span>
+            </button>
+            <button onclick="openDetails('agente-ia')" class="text-xs font-semibold text-gray-600 hover:text-gray-900 px-2 py-2">
+              Detalhes
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3: Gerador de Roteiro de Vendas com IA -->
+      <article class="project-card bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col" data-category="ia">
+        <div class="h-44 bg-gradient-to-br from-[#121d2b] to-[#192b42] p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between z-10">
+            <span class="bg-[#c59b27]/20 text-[#dfb743] border border-[#c59b27]/30 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase">Ferramenta IA</span>
+            <span class="text-white/60 text-xs">Produtividade</span>
+          </div>
+          <div class="z-10">
+            <p class="text-xs text-white/60 font-medium">Capacitação Comercial</p>
+            <h3 class="text-lg font-bold text-white mt-0.5">Gerador de Script de Abordagem</h3>
+          </div>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Gera abordagens sob medida para prospecção fria e follow-ups no WhatsApp baseando-se no segmento e porte do cliente.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Prompt Engineering</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Copy B2B</span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+            <button onclick="openLiveDemo('script-ia')" class="button-gold text-xs font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 flex-1 justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>Gerar Script</span>
+            </button>
+            <button onclick="openDetails('script-ia')" class="text-xs font-semibold text-gray-600 hover:text-gray-900 px-2 py-2">
+              Detalhes
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4: Matriz de Maturidade Comercial -->
+      <article class="project-card bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col" data-category="diagnostico">
+        <div class="h-44 bg-gradient-to-br from-[#121d2b] to-[#1e2f45] p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between z-10">
+            <span class="bg-[#c59b27]/20 text-[#dfb743] border border-[#c59b27]/30 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase">Diagnóstico</span>
+            <span class="text-white/60 text-xs">Assessment</span>
+          </div>
+          <div class="z-10">
+            <p class="text-xs text-white/60 font-medium">Gestão & Processos</p>
+            <h3 class="text-lg font-bold text-white mt-0.5">Diagnóstico de Maturidade Comercial</h3>
+          </div>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Questionário estratégico de 5 perguntas que classifica a operação comercial entre Nível 1 (Manual) a Nível 4 (Previsível com IA).
+            </p>
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Diagnóstico 360°</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Scoring</span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+            <button onclick="openLiveDemo('maturidade')" class="button-gold text-xs font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 flex-1 justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              <span>Avaliar Minha Empresa</span>
+            </button>
+            <button onclick="openDetails('maturidade')" class="text-xs font-semibold text-gray-600 hover:text-gray-900 px-2 py-2">
+              Detalhes
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 5: Pipeline DataCrazy + n8n -->
+      <article class="project-card bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col" data-category="crm">
+        <div class="h-44 bg-gradient-to-br from-[#121d2b] to-[#2a394d] p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between z-10">
+            <span class="bg-[#c59b27]/20 text-[#dfb743] border border-[#c59b27]/30 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase">Automação & CRM</span>
+            <span class="text-white/60 text-xs">Arquitetura</span>
+          </div>
+          <div class="z-10">
+            <p class="text-xs text-white/60 font-medium">Integração de Sistemas</p>
+            <h3 class="text-lg font-bold text-white mt-0.5">Pipeline DataCrazy + WhatsApp n8n</h3>
+          </div>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Fluxo completo de distribuição de oportunidades com alertas instantâneos para vendedores e gravação de histórico de conversas no CRM.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">DataCrazy</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">n8n Workflow</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Webhooks</span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+            <button onclick="openLiveDemo('pipeline')" class="button-gold text-xs font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 flex-1 justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              <span>Ver Fluxo</span>
+            </button>
+            <button onclick="openDetails('pipeline')" class="text-xs font-semibold text-gray-600 hover:text-gray-900 px-2 py-2">
+              Detalhes
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 6: Landing Page de Alta Conversão B2B -->
+      <article class="project-card bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col" data-category="web">
+        <div class="h-44 bg-gradient-to-br from-[#121d2b] to-[#1e2f45] p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between z-10">
+            <span class="bg-[#c59b27]/20 text-[#dfb743] border border-[#c59b27]/30 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase">Landing Page</span>
+            <span class="text-white/60 text-xs">Conversão</span>
+          </div>
+          <div class="z-10">
+            <p class="text-xs text-white/60 font-medium">Estrutura B2B</p>
+            <h3 class="text-lg font-bold text-white mt-0.5">Página de Captação & Diagnóstico</h3>
+          </div>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Estrutura moderna voltada para geração de leads com formulário qualificado em 2 etapas, persistência de UTMs e disparo para WhatsApp.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Tailwind CSS</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">React / Vite</span>
+              <span class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Supabase</span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+            <button onclick="openLiveDemo('landing')" class="button-gold text-xs font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 flex-1 justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              <span>Ver Exemplo</span>
+            </button>
+            <button onclick="openDetails('landing')" class="text-xs font-semibold text-gray-600 hover:text-gray-900 px-2 py-2">
+              Detalhes
+            </button>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- Interactive Modal for Live Demonstrations -->
+  <div id="demo-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-[#121d2b] px-6 py-4 flex items-center justify-between text-white border-b border-white/10">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-[#dfb743]" id="modal-eyebrow">Demonstração Interativa</span>
+          <h2 class="text-lg font-bold" id="modal-title">Título do Projeto</h2>
+        </div>
+        <button onclick="closeModal()" class="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Dynamic Interactive Content) -->
+      <div class="p-6 overflow-y-auto flex-1" id="modal-content">
+        <!-- Will be populated by JS -->
+      </div>
+
+      <!-- Modal Footer with High-Conversion CTA -->
+      <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p class="text-xs text-gray-500 text-center sm:text-left">
+          Quer uma solução personalizada como essa na sua empresa?
+        </p>
+        <a id="modal-cta-whatsapp" href="https://wa.me/5515981103345?text=Olá%20Felipe,%20gostei%20do%20projeto%20que%20vi%20no%20seu%20site%20e%20gostaria%20de%20implementar." target="_blank" class="button-gold text-xs font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 shrink-0">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+          <span>Falar com Felipe sobre este projeto</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Final CTA Section -->
+  <section class="bg-[#121d2b] text-white py-14 border-t border-white/10">
+    <div class="max-w-4xl mx-auto px-5 text-center">
+      <span class="text-[#dfb743] text-xs font-extrabold uppercase tracking-widest block mb-3">Próximo Passo</span>
+      <h2 class="text-2xl sm:text-4xl font-bold">Tem uma necessidade específica ou ideia de projeto?</h2>
+      <p class="mt-4 text-sm sm:text-base text-white/70 max-w-xl mx-auto">
+        Criamos diagnósticos personalizados, agentes de IA com regras de negócio e fluxos de automação desenhados para a realidade da sua equipe.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
+        <a href="/#diagnostico" class="button-gold px-6 py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+          <span>Solicitar diagnóstico gratuito</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </a>
+        <a href="https://wa.me/5515981103345?text=Olá%20Felipe,%20estava%20olhando%20a%20página%20de%20projetos%20e%20gostaria%20de%20trocar%20uma%20ideia." target="_blank" class="border border-white/30 hover:bg-white/10 text-white px-6 py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+          <span>Conversar no WhatsApp</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-[#0a111a] py-8 text-white/60 text-xs border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p>© 2026 Felipe Medeiros. Todos os direitos reservados.</p>
+      <div class="flex gap-4">
+        <a href="/" class="hover:text-white transition-colors">Início</a>
+        <a href="/produtos-e-servicos" class="hover:text-white transition-colors">Produtos e serviços</a>
+        <a href="/#diagnostico" class="hover:text-white transition-colors">Diagnóstico</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    // Category Filtering
+    function filterCategory(category) {
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(btn => {
+        if (btn.getAttribute('data-category') === category) {
+          btn.className = "filter-btn active-filter px-4 py-2 rounded-full text-xs sm:text-sm font-bold bg-[#c59b27] text-[#121d2b] transition-all";
+        } else {
+          btn.className = "filter-btn px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-white/10 text-white/80 hover:bg-white/15 hover:text-white transition-all";
+        }
+      });
+
+      const cards = document.querySelectorAll('.project-card');
+      cards.forEach(card => {
+        if (category === 'todos' || card.getAttribute('data-category') === category) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Modal Details & Interactive Live Demos
+    const DEMOS = {
+      'calculadora': {
+        title: 'Calculadora de Vazamento de Funil',
+        eyebrow: 'Simulação Interativa',
+        content: `
+          <div class="space-y-4">
+            <p class="text-sm text-gray-600">Simule a perda estimada mensal de vendas decorrente de atraso no primeiro contato e ausência de follow-up:</p>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-gray-700">Volume mensal de leads recebidos:</label>
+                <input id="calc-leads" type="range" min="30" max="500" value="120" step="10" oninput="updateCalc()" class="w-full accent-[#c59b27] mt-1">
+                <div class="flex justify-between text-xs text-gray-500 font-semibold"><span id="calc-leads-val">120 leads/mês</span><span>500 leads</span></div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700">Ticket médio do produto/serviço (R$):</label>
+                <input id="calc-ticket" type="number" value="3500" oninput="updateCalc()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1">
+              </div>
+              <div class="p-4 bg-[#121d2b] text-white rounded-lg mt-4 flex items-center justify-between">
+                <div>
+                  <span class="text-xs text-[#dfb743] font-bold block uppercase">Perda mensal estimada</span>
+                  <p class="text-2xl font-bold text-white mt-1" id="calc-result">R$ 42.000,00</p>
+                </div>
+                <div class="text-right text-xs text-white/70">
+                  <p>Recuperável com CRM + IA:</p>
+                  <p class="text-sm font-bold text-emerald-400" id="calc-recovery">~R$ 14.700/mês</p>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500 italic">*Cálculo baseado em taxa média de 25% de perda por tempo de resposta superior a 15 minutos em contatos de WhatsApp.</p>
+          </div>
+        `
+      },
+      'agente-ia': {
+        title: 'Agente de Qualificação Comercial SDR (WhatsApp)',
+        eyebrow: 'Simulação de Conversa',
+        content: `
+          <div class="space-y-3">
+            <p class="text-xs text-gray-600">Veja como um agente treinado conduz o primeiro atendimento em segundos:</p>
+            <div class="bg-gray-100 p-4 rounded-xl border border-gray-200 space-y-3 font-sans text-sm max-h-64 overflow-y-auto">
+              <div class="flex gap-2">
+                <span class="w-7 h-7 rounded-full bg-[#121d2b] text-[#dfb743] flex items-center justify-center text-xs font-bold shrink-0">IA</span>
+                <div class="bg-white p-3 rounded-lg shadow-xs border border-gray-200 max-w-[80%]">
+                  <p class="text-xs font-bold text-gray-800">Assistente Felipe Medeiros</p>
+                  <p class="text-xs text-gray-700 mt-1">Olá! Vi que você tem interesse em estruturar a operação comercial da sua empresa. Qual é o segmento do seu negócio hoje?</p>
+                </div>
+              </div>
+              <div class="flex gap-2 justify-end">
+                <div class="bg-[#c59b27]/20 border border-[#c59b27]/40 p-3 rounded-lg shadow-xs max-w-[80%] text-right">
+                  <p class="text-xs font-bold text-gray-900">Visitante</p>
+                  <p class="text-xs text-gray-800 mt-1">Trabalhamos com consultoria financeira B2B e temos 4 consultores.</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <span class="w-7 h-7 rounded-full bg-[#121d2b] text-[#dfb743] flex items-center justify-center text-xs font-bold shrink-0">IA</span>
+                <div class="bg-white p-3 rounded-lg shadow-xs border border-gray-200 max-w-[80%]">
+                  <p class="text-xs font-bold text-gray-800">Assistente Felipe Medeiros</p>
+                  <p class="text-xs text-gray-700 mt-1">Perfeito! Com 4 consultores, manter follow-ups organizados no CRM evita perda de propostas. Já utilizam algum CRM ou o controle ainda é feito por planilhas/WhatsApp pessoal?</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900">
+              💡 <strong>Regra de negócio:</strong> O agente qualifica tamanho de equipe e momento antes de transferir com resumo pronto para a agenda do consultor.
+            </div>
+          </div>
+        `
+      },
+      'script-ia': {
+        title: 'Gerador de Roteiro de Vendas B2B',
+        eyebrow: 'Gerador Prático',
+        content: `
+          <div class="space-y-4">
+            <p class="text-sm text-gray-600">Selecione o momento da conversa para gerar um exemplo de script estruturado:</p>
+            <div class="flex gap-2">
+              <button onclick="renderScript('prospeccao')" class="px-3 py-1.5 text-xs font-bold bg-[#121d2b] text-white rounded-lg">Prospecção Fria</button>
+              <button onclick="renderScript('followup')" class="px-3 py-1.5 text-xs font-semibold bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800">Follow-up Proposta</button>
+            </div>
+            <div id="script-result" class="p-4 bg-gray-50 border border-gray-200 rounded-xl font-mono text-xs text-gray-800 whitespace-pre-wrap leading-relaxed">
+"Olá, [Nome], tudo bem?
+
+Acompanho o crescimento da [Empresa] e vejo que vocês atendem um volume relevante de clientes no setor.
+
+Geralmente, empresas do seu segmento enfrentam dois gargalos comuns: demora no primeiro contato pelo WhatsApp e perda de propostas por falta de follow-up sistematizado.
+
+Estruturei um diagnóstico de 20 minutos que ajuda a identificar exatamente onde estão esses vazamentos. Faria sentido conversarmos nesta quinta-feira às 15h?"
+            </div>
+          </div>
+        `
+      },
+      'maturidade': {
+        title: 'Diagnóstico de Maturidade Comercial',
+        eyebrow: 'Metodologia',
+        content: `
+          <div class="space-y-4">
+            <p class="text-sm text-gray-600">A maturidade comercial determina qual tecnologia deve ser adotada primeiro:</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <span class="font-bold text-red-800 block">Nível 1 • Artesanal</span>
+                <p class="text-gray-600 mt-1">Leads no WhatsApp pessoal, sem CRM, follow-up de memória.</p>
+              </div>
+              <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <span class="font-bold text-amber-800 block">Nível 2 • Organizado</span>
+                <p class="text-gray-600 mt-1">CRM instalado, etapas desenhadas, controle manual com vendedor.</p>
+              </div>
+              <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <span class="font-bold text-blue-800 block">Nível 3 • Automatizado</span>
+                <p class="text-gray-600 mt-1">Automação de tarefas, alertas de inatividade, funil integrado com marketing.</p>
+              </div>
+              <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <span class="font-bold text-emerald-800 block">Nível 4 • Inteligente (IA)</span>
+                <p class="text-gray-600 mt-1">Agentes de qualificação 24/7, distribuição automática e métricas preditivas.</p>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500">No diagnóstico com Felipe Medeiros, identificamos o nível exato e montamos o plano de evolução.</p>
+          </div>
+        `
+      },
+      'pipeline': {
+        title: 'Arquitetura de Pipeline DataCrazy + n8n',
+        eyebrow: 'Fluxo Operacional',
+        content: `
+          <div class="space-y-3">
+            <p class="text-sm text-gray-600">Visão da esteira integrada que elimina tarefas manuais repetitivas:</p>
+            <div class="bg-gray-900 text-white p-4 rounded-xl space-y-2 text-xs font-mono">
+              <div class="flex items-center gap-2 text-emerald-400"><span>1. Entrada:</span> <span class="text-white">Lead preenche formulário / chama no WhatsApp</span></div>
+              <div class="flex items-center gap-2 text-[#dfb743]"><span>2. Validação:</span> <span class="text-white">n8n higieniza telefone e busca dados na base</span></div>
+              <div class="flex items-center gap-2 text-blue-400"><span>3. Registro:</span> <span class="text-white">Cria negócio no DataCrazy com responsável atribuído</span></div>
+              <div class="flex items-center gap-2 text-purple-400"><span>4. Notificação:</span> <span class="text-white">Dispara alerta com card do cliente no grupo comercial</span></div>
+            </div>
+          </div>
+        `
+      },
+      'landing': {
+        title: 'Estrutura da Landing Page de Diagnóstico',
+        eyebrow: 'Engenharia de Conversão',
+        content: `
+          <div class="space-y-3 text-sm text-gray-600">
+            <p>Principais componentes de usabilidade presentes no site:</p>
+            <ul class="list-disc pl-5 space-y-1.5 text-xs text-gray-700">
+              <li><strong>Formulário inteligente em 2 etapas:</strong> reduz o atrito visual inicial.</li>
+              <li><strong>Chips de seleção rápida:</strong> evita que o usuário abandone por preguiça de digitar.</li>
+              <li><strong>Rastreamento e UTMs:</strong> armazena parâmetros do anúncio para o CRM.</li>
+              <li><strong>Página /obrigado dedicada:</strong> mensura conversão de pixels com precisão.</li>
+            </ul>
+          </div>
+        `
+      }
+    };
+
+    function openLiveDemo(id) {
+      const data = DEMOS[id];
+      if (!data) return;
+      document.getElementById('modal-title').textContent = data.title;
+      document.getElementById('modal-eyebrow').textContent = data.eyebrow;
+      document.getElementById('modal-content').innerHTML = data.content;
+      document.getElementById('demo-modal').classList.remove('hidden');
+      document.getElementById('demo-modal').classList.add('flex');
+      if (id === 'calculadora') updateCalc();
+    }
+
+    function openDetails(id) {
+      openLiveDemo(id);
+    }
+
+    function closeModal() {
+      document.getElementById('demo-modal').classList.add('hidden');
+      document.getElementById('demo-modal').classList.remove('flex');
+    }
+
+    function updateCalc() {
+      const leads = Number(document.getElementById('calc-leads')?.value || 120);
+      const ticket = Number(document.getElementById('calc-ticket')?.value || 3500);
+      document.getElementById('calc-leads-val').textContent = leads + ' leads/mês';
+      
+      const lostSales = Math.round((leads * 0.10) * 0.25);
+      const lossVal = lostSales * ticket;
+      const recoveryVal = Math.round(lossVal * 0.35);
+
+      document.getElementById('calc-result').textContent = 'R$ ' + lossVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+      document.getElementById('calc-recovery').textContent = '~R$ ' + recoveryVal.toLocaleString('pt-BR') + '/mês';
+    }
+
+    function renderScript(type) {
+      const el = document.getElementById('script-result');
+      if (type === 'prospeccao') {
+        el.textContent = `"Olá, [Nome], tudo bem?\n\nAcompanho o crescimento da [Empresa] e vejo que vocês atendem um volume relevante de clientes no setor.\n\nGeralmente, empresas do seu segmento enfrentam dois gargalos comuns: demora no primeiro contato pelo WhatsApp e perda de propostas por falta de follow-up sistematizado.\n\nEstruturei um diagnóstico de 20 minutos que ajuda a identificar exatamente onde estão esses vazamentos. Faria sentido conversarmos nesta quinta-feira às 15h?"`;
+      } else {
+        el.textContent = `"Olá, [Nome]!\n\nPassando para saber se você conseguiu avaliar a proposta que desenhamos para estruturar a operação de vendas da [Empresa].\n\nFicou alguma dúvida sobre o cronograma de 7 dias ou as etapas de treinamento da equipe?\n\nSe fizer sentido, podemos fazer um alinhamento rápido de 10 minutos hoje para esclarecer qualquer ponto."`;
+      }
+    }
+
+    // Close on backdrop click
+    document.getElementById('demo-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+  </script>
+</body>
+</html>
