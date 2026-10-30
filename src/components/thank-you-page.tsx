@@ -1,11 +1,25 @@
+import { useEffect } from "react";
+import { Link } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getWhatsAppUrl } from "@/lib/site-settings";
 import { useSiteSettings } from "@/lib/site-settings-context";
 import { trackEvent } from "@/lib/analytics";
 
 export function ThankYouPage() {
   const settings = useSiteSettings();
+
+  useEffect(() => {
+    trackEvent("thank_you_page_view");
+  }, []);
+
+  const rawPhone = settings.whatsappNumber.replace(/\D/g, "");
+  const fastTrackMsg = encodeURIComponent(
+    "Olá Felipe, acabei de solicitar meu diagnóstico no site e gostaria de adiantar meu atendimento.",
+  );
+  const fastTrackWhatsAppUrl = rawPhone
+    ? `https://wa.me/${rawPhone}?text=${fastTrackMsg}`
+    : `https://wa.me/5515981103345?text=${fastTrackMsg}`;
+
   return (
     <main className="relative grid min-h-screen place-items-center overflow-hidden bg-deep px-5 py-16 text-inverse">
       <div className="editorial-grid" aria-hidden="true" />
@@ -19,21 +33,24 @@ export function ThankYouPage() {
           Recebi suas informações. Agora vou analisar seu cenário e entrar em contato pelo WhatsApp
           para combinarmos o próximo passo.
         </p>
-        <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+        <p className="mt-4 text-sm font-semibold text-gold-light">
+          Quer adiantar sua conversa sem aguardar na fila?
+        </p>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild size="lg" className="button-gold">
             <a
-              href={getWhatsAppUrl(settings)}
+              href={fastTrackWhatsAppUrl}
               target="_blank"
               rel="noreferrer"
-              onClick={() => trackEvent("cta_whatsapp_click", { label: "thank_you" })}
+              onClick={() => trackEvent("cta_whatsapp_click", { label: "thank_you_fast_track" })}
             >
               <MessageCircle /> Falar com Felipe agora
             </a>
           </Button>
           <Button asChild variant="outline" size="lg" className="button-outline-dark">
-            <a href="/">
+            <Link to="/">
               <ArrowLeft /> Voltar ao início
-            </a>
+            </Link>
           </Button>
         </div>
       </div>

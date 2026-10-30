@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, ArrowRight, CheckCircle2, Send } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, CheckCircle2, MessageCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/lib/site-settings-context";
 import { getSafeExternalUrl, getWhatsAppUrl, submitLead, UTM_KEYS } from "@/lib/site-settings";
 import { COUNTRIES, internationalPhone, OPERATION_TOOLS } from "@/lib/form-options";
-import { trackEvent, type AnalyticsEvent } from "@/lib/analytics";
+import { getStoredUtms, trackEvent, type AnalyticsEvent } from "@/lib/analytics";
 
-function trackFormEvent(event: AnalyticsEvent) {
+function trackFormEvent(event: AnalyticsEvent, detail: Record<string, unknown> = {}) {
   try {
-    trackEvent(event);
+    trackEvent(event, detail);
   } catch {
     /* Optional tracking must never interrupt the form. */
   }
@@ -16,6 +17,7 @@ function trackFormEvent(event: AnalyticsEvent) {
 
 export function LeadForm() {
   const settings = useSiteSettings();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [country, setCountry] = useState("BR");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -83,12 +85,7 @@ export function LeadForm() {
     setStatus("loading");
     trackFormEvent("diagnostic_form_submit");
     const data = new FormData(form);
-    const utm: Record<string, string> = {};
-    const query = new URLSearchParams(window.location.search);
-    UTM_KEYS.forEach((key) => {
-      const value = query.get(key);
-      if (value) utm[key] = value.slice(0, 200);
-    });
+    const utm = getStoredUtms();
     try {
       await submitLead({
         data: {
@@ -109,6 +106,11 @@ export function LeadForm() {
       });
       setStatus("success");
       trackFormEvent("diagnostic_form_success");
+      try {
+        navigate({ to: "/obrigado" });
+      } catch {
+        // Fallback para estado de sucesso inline caso a navegação seja interrompida
+      }
     } catch {
       setStatus("error");
       trackFormEvent("diagnostic_form_error");
@@ -156,16 +158,28 @@ export function LeadForm() {
             aria-live="polite"
           >
             <CheckCircle2 className="mb-6 size-12 text-success" aria-hidden="true" />
-            <h3 className="text-2xl font-bold">Formulário enviado com sucesso!</h3>
+            <h3 className="text-2xl font-bold">Solicitação enviada com sucesso!</h3>
             <p className="mt-4 leading-7 text-muted-foreground">
-              Recebemos suas informações. Nosso time entrará em contato em breve pelo WhatsApp
-              informado para combinar os próximos passos.
+              Recebemos suas informações. Para ter atendimento prioritário e adiantar seu diagnóstico,
+              você também pode conversar diretamente com Felipe no WhatsApp.
             </p>
-            <Button asChild className="button-gold mt-8">
-              <a href="#inicio">
-                Voltar ao início <ArrowRight aria-hidden="true" />
-              </a>
-            </Button>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild className="button-gold">
+                <a
+                  href={getWhatsAppUrl(settings)}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => trackFormEvent("cta_whatsapp_click", { label: "inline_success" })}
+                >
+                  <MessageCircle aria-hidden="true" /> Falar no WhatsApp agora
+                </a>
+              </Button>
+              <Button asChild variant="outline">
+                <a href="#inicio">
+                  Voltar ao início <ArrowRight aria-hidden="true" />
+                </a>
+              </Button>
+            </div>
           </div>
         ) : (
           <form
@@ -345,6 +359,8 @@ export function LeadForm() {
                   para atendimento e diagnóstico comercial, conforme a{" "}
                   <a
                     href={getSafeExternalUrl(settings.privacyUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="font-bold text-primary underline"
                   >
                     Política de Privacidade

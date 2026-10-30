@@ -17,6 +17,15 @@ import { SiteSettingsProvider } from "../lib/site-settings-context";
 import { Toaster } from "../components/ui/sonner";
 import { getSupabaseClient, SUPABASE_URL } from "../lib/supabase";
 import { recordPageView } from "../lib/track-page-view";
+import { captureUtms } from "../lib/analytics";
+
+function isValidMeasurementId(id: string | undefined): boolean {
+  return typeof id === "string" && /^[A-Za-z0-9_-]{4,30}$/.test(id.trim());
+}
+
+function isValidPixelId(id: string | undefined): boolean {
+  return typeof id === "string" && /^[0-9]{6,25}$/.test(id.trim());
+}
 
 function NotFoundComponent() {
   return (
@@ -116,12 +125,44 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   const siteSettings = Route.useLoaderData();
+  const gaId = siteSettings?.gaMeasurementId?.trim();
+  const pixelId = siteSettings?.metaPixelId?.trim();
 
   return (
     <html lang="pt-BR">
       <head>
         <HeadContent />
-        {/* Scripts arbitrários vindos das configurações foram desativados por segurança. */}
+        {isValidMeasurementId(gaId) && (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}',{send_page_view:true});`,
+              }}
+            />
+          </>
+        )}
+        {isValidPixelId(pixelId) && (
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${pixelId}');fbq('track','PageView');`,
+              }}
+            />
+            <noscript>
+              <img
+                height="1"
+                width="1"
+                style={{ display: "none" }}
+                alt=""
+                src={`https://www.facebook.com/tr?id=${encodeURIComponent(pixelId)}&ev=PageView&noscript=1`}
+              />
+            </noscript>
+          </>
+        )}
       </head>
       <body>
         {children}
@@ -143,6 +184,11 @@ function RootComponent() {
   useEffect(() => {
     getSupabaseClient();
   }, []);
+
+  // Preserva UTMs de campanhas (Google, Meta, etc.) durante toda a sessão do visitante.
+  useEffect(() => {
+    captureUtms();
+  }, [pathname]);
 
   // Contador de visitas: registra uma visualização a cada página carregada
   // ou navegada dentro do site. Nunca deve travar ou afetar a navegação.
