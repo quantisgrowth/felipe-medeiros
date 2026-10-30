@@ -36,6 +36,7 @@ import { SitePhoto } from "@/components/site-photo";
 const navItems = [
   ["Sobre", "sobre"],
   ["Produtos e serviços", "/produtos-e-servicos"],
+  ["Projetos", "/projetos"],
   ["Solução", "solucao"],
   ["Como funciona", "como-funciona"],
   ["Implantação", "implantacao"],

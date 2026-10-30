@@ -1,6 +1,6 @@
 import { DEFAULT_ROLES, DEFAULT_SEGMENTS, normalizeOptions } from "@/lib/form-options";
 import { useNavigate } from "@tanstack/react-router";
-import { LogOut, UploadCloud } from "lucide-react";
+import { ExternalLink, FileText, LogOut, Plus, Trash2, UploadCloud } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +12,14 @@ import { PhotoCropDialog } from "@/components/photo-crop-dialog";
 import type { CroppedImageVariants } from "@/lib/image-crop";
 import { getSupabaseClient } from "@/lib/supabase";
 import { settingsToRow, type SiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site-settings";
+import {
+  deleteProject,
+  fetchProjects,
+  saveProject,
+  uploadProjectFile,
+  type Project,
+  type ProjectContentType,
+} from "@/lib/projects";
 
 type LoadState = "checking" | "ready" | "unauthenticated";
 
@@ -148,8 +156,9 @@ export function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="conteudo" className="mt-8">
-          <TabsList>
+          <TabsList className="flex-wrap">
             <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
+            <TabsTrigger value="projetos">Projetos & Materiais</TabsTrigger>
             <TabsTrigger value="formulario">Formulário</TabsTrigger>
             <TabsTrigger value="fotos">Fotos</TabsTrigger>
             <TabsTrigger value="tags">Tags & tracking</TabsTrigger>
@@ -310,6 +319,10 @@ export function AdminDashboard() {
               </Button>
             </div>
           </form>
+
+          <TabsContent value="projetos" className="rounded-lg border border-border bg-surface p-6">
+            <ProjectsManager />
+          </TabsContent>
 
           <TabsContent value="leads" className="rounded-lg border border-border bg-surface p-6">
             <LeadsList />
@@ -1059,6 +1072,339 @@ function InviteTeammate() {
           {inviting ? "Enviando…" : "Convidar"}
         </Button>
       </form>
+    </div>
+  );
+}
+
+function ProjectsManager() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Form states
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<Project["category"]>("diagnostico");
+  const [contentType, setContentType] = useState<ProjectContentType>("pdf");
+  const [description, setDescription] = useState("");
+  const [tagsStr, setTagsStr] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+  const [externalUrl, setExternalUrl] = useState("");
+  const [isFeatured, setIsFeatured] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function load() {
+    setLoading(true);
+    const data = await fetchProjects();
+    setProjects(data);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 30 * 1024 * 1024) {
+      toast.error("O arquivo deve ter até 30MB.");
+      return;
+    }
+
+    setUploading(true);
+    const res = await uploadProjectFile(file, contentType === "pdf" ? "pdf" : "tools");
+    setUploading(false);
+
+    if (res.error || !res.url) {
+      toast.error("Erro no envio do arquivo", { description: res.error });
+      return;
+    }
+
+    setFileUrl(res.url);
+    toast.success("Arquivo enviado com sucesso!");
+  }
+
+  async function handleSaveProject(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!title.trim()) {
+      toast.error("O título é obrigatório.");
+      return;
+    }
+
+    const tags = tagsStr
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const targetUrl = fileUrl || externalUrl;
+    if (!targetUrl && contentType !== "link") {
+      toast.error("Faça o upload do arquivo ou informe o link.");
+      return;
+    }
+
+    const slug = title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 60);
+
+    const res = await saveProject({
+      title,
+      slug,
+      category,
+      contentType,
+      description,
+      fileUrl: targetUrl,
+      externalUrl,
+      tags,
+      isFeatured,
+    });
+
+    if (!res.success) {
+      toast.error("Erro ao salvar projeto", { description: res.error });
+      return;
+    }
+
+    toast.success("Projeto salvo e publicado com sucesso!");
+    setOpenModal(false);
+    resetForm();
+    load();
+  }
+
+  function resetForm() {
+    setTitle("");
+    setCategory("diagnostico");
+    setContentType("pdf");
+    setDescription("");
+    setTagsStr("");
+    setFileUrl("");
+    setExternalUrl("");
+    setIsFeatured(false);
+  }
+
+  async function handleDelete(id: string, projectTitle: string) {
+    if (!confirm(`Tem certeza que deseja excluir "${projectTitle}"?`)) return;
+    const res = await deleteProject(id);
+    if (!res.success) {
+      toast.error("Erro ao excluir", { description: res.error });
+      return;
+    }
+    toast.success("Projeto excluído.");
+    load();
+  }
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
+        <div>
+          <h2 className="text-lg font-bold text-foreground">Projetos, Ferramentas & Materiais</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Suba relatórios em PDF, calculadoras interativas ou ferramentas de IA para exibir na página de Projetos do seu site.
+          </p>
+        </div>
+        <Button onClick={() => setOpenModal(true)} className="button-gold gap-2 shrink-0">
+          <Plus className="size-4" /> Novo Projeto / Material
+        </Button>
+      </div>
+
+      {/* Listagem */}
+      {loading ? (
+        <p className="py-8 text-sm text-muted-foreground">Carregando projetos...</p>
+      ) : projects.length === 0 ? (
+        <div className="py-12 text-center">
+          <FileText className="mx-auto size-12 text-muted-foreground/60" />
+          <p className="mt-3 font-semibold text-foreground">Nenhum projeto cadastrado no banco</p>
+          <p className="text-xs text-muted-foreground">Clique em "Novo Projeto / Material" para começar.</p>
+        </div>
+      ) : (
+        <div className="mt-6 divide-y divide-border">
+          {projects.map((p) => (
+            <div key={p.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-foreground text-sm">{p.title}</span>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+                    {p.contentType.toUpperCase()}
+                  </span>
+                  {p.isFeatured && (
+                    <span className="text-[10px] font-bold text-gold px-1.5 py-0.5 rounded bg-gold/10">
+                      ★ Destaque
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{p.description}</p>
+                {p.tags.length > 0 && (
+                  <p className="text-[11px] text-muted-foreground/80 mt-1">Tags: {p.tags.join(", ")}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {p.fileUrl && (
+                  <Button asChild variant="outline" size="sm">
+                    <a href={p.fileUrl} target="_blank" rel="noreferrer" className="gap-1.5 text-xs">
+                      <ExternalLink className="size-3.5" /> Ver Arquivo
+                    </a>
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(p.id, p.title)}
+                  className="text-destructive hover:bg-destructive/10 text-xs"
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Dialog para Adicionar */}
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Projeto / Material</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSaveProject} className="space-y-4 mt-2">
+            <div>
+              <Label htmlFor="proj-title">Título do Projeto / Conteúdo</Label>
+              <input
+                id="proj-title"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Diagnóstico Comercial de Operações B2B"
+                className="form-control"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="proj-category">Categoria</Label>
+                <select
+                  id="proj-category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as Project["category"])}
+                  className="form-control"
+                >
+                  <option value="diagnostico">Diagnóstico / Calculadora</option>
+                  <option value="ia">Agente de IA</option>
+                  <option value="playbook">Playbook / Guia PDF</option>
+                  <option value="crm">CRM & Automação</option>
+                  <option value="web">Web & Landing Page</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+
+              <div>
+                <Label htmlFor="proj-type">Tipo de Arquivo</Label>
+                <select
+                  id="proj-type"
+                  value={contentType}
+                  onChange={(e) => setContentType(e.target.value as ProjectContentType)}
+                  className="form-control"
+                >
+                  <option value="pdf">Documento PDF (.pdf)</option>
+                  <option value="html">Ferramenta HTML (.html)</option>
+                  <option value="link">Link Externo</option>
+                </select>
+              </div>
+            </div>
+
+            {contentType !== "link" ? (
+              <div>
+                <Label>Upload do Arquivo ({contentType.toUpperCase()})</Label>
+                <div className="mt-1 flex items-center gap-3">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept={contentType === "pdf" ? ".pdf" : ".html"}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full justify-center gap-2 border-dashed h-14"
+                  >
+                    <UploadCloud className="size-5" />
+                    {uploading
+                      ? "Enviando arquivo para o servidor..."
+                      : fileUrl
+                        ? "Arquivo selecionado! (Clique para trocar)"
+                        : `Clique para selecionar arquivo .${contentType}`}
+                  </Button>
+                </div>
+                {fileUrl && (
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1 truncate">
+                    ✓ Arquivo pronto: {fileUrl}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="proj-ext">URL Externa</Label>
+                <input
+                  id="proj-ext"
+                  type="url"
+                  value={externalUrl}
+                  onChange={(e) => setExternalUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="form-control"
+                />
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="proj-desc">Descrição / Resumo</Label>
+              <textarea
+                id="proj-desc"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Breve resumo sobre o problema que o material ou ferramenta soluciona..."
+                className="form-control h-auto py-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="proj-tags">Tags (separadas por vírgula)</Label>
+              <input
+                id="proj-tags"
+                value={tagsStr}
+                onChange={(e) => setTagsStr(e.target.value)}
+                placeholder="Ex: DataCrazy, n8n, WhatsApp API"
+                className="form-control"
+              />
+            </div>
+
+            <label className="flex items-center gap-2 text-xs font-semibold text-foreground cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="size-4 rounded accent-primary"
+              />
+              Destacar este projeto no topo da página
+            </label>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-border">
+              <Button type="button" variant="outline" onClick={() => setOpenModal(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={uploading} className="button-gold">
+                Salvar e Publicar
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
