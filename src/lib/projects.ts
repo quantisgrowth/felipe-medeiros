@@ -19,12 +19,12 @@ export type Project = {
   category: "ia" | "diagnostico" | "playbook" | "crm" | "web" | "outro";
   contentType: ProjectContentType;
   fileUrl: string;
-  externalUrl?: string;
-  coverUrl?: string;
+  externalUrl?: string | undefined;
+  coverUrl?: string | undefined;
   tags: string[];
-  isFeatured?: boolean;
-  orderIndex?: number;
-  createdAt?: string;
+  isFeatured?: boolean | undefined;
+  orderIndex?: number | undefined;
+  createdAt?: string | undefined;
 };
 
 type ProjectRow = {
@@ -137,10 +137,114 @@ function rowToProject(row: ProjectRow): Project {
   };
 }
 
+const DELETED_PROJECTS_KEY = "fm_deleted_projects";
+const CUSTOM_PROJECTS_KEY = "fm_custom_projects";
+
+export function getDeletedProjectIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(DELETED_PROJECTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addDeletedProjectId(id: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getDeletedProjectIds();
+    if (!current.includes(id)) {
+      localStorage.setItem(DELETED_PROJECTS_KEY, JSON.stringify([...current, id]));
+    }
+    const custom = getCustomProjects();
+    const updated = custom.filter((p) => p.id !== id);
+    localStorage.setItem(CUSTOM_PROJECTS_KEY, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+}
+
+export function getCustomProjects(): Project[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_PROJECTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomProjectLocal(project: Project) {
+  if (typeof window === "undefined") return;
+  try {
+    const custom = getCustomProjects();
+    const existingIndex = custom.findIndex((p) => p.id === project.id);
+    if (existingIndex >= 0) {
+      custom[existingIndex] = project;
+    } else {
+      custom.unshift(project);
+    }
+    localStorage.setItem(CUSTOM_PROJECTS_KEY, JSON.stringify(custom));
+  } catch {
+    // ignore
+  }
+}
+
 /**
- * Busca todos os projetos no Supabase.
- * Nunca lança erro — se a tabela ainda não existir ou a rede falhar,
- * retorna a lista padrão de projetos para o site nunca ficar quebrado.
+ * Verifica se a tabela 'projects' já existe no banco Supabase.
+ */
+export async function checkProjectsTableExists(): Promise<boolean> {
+  try {
+    const supabase = getPublicSupabaseClient();
+    const { error } = await supabase.from("projects").select("id").limit(1);
+    if (error && error.code === "PGRST205") {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Script SQL para criar a tabela caso ainda não tenha sido rodado.
+ */
+export const CREATE_PROJECTS_TABLE_SQL = `-- Criação da tabela de projetos e materiais compartilháveis
+create table if not exists public.projects (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text not null unique,
+  description text not null default '',
+  category text not null default 'diagnostico',
+  content_type text not null default 'pdf',
+  file_url text not null default '',
+  external_url text not null default '',
+  cover_url text not null default '',
+  tags text[] not null default array[]::text[],
+  is_featured boolean not null default false,
+  order_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.projects enable row level security;
+
+-- Permissões
+drop policy if exists "public can read projects" on public.projects;
+create policy "public can read projects"
+  on public.projects for select to anon, authenticated
+  using (true);
+
+drop policy if exists "authenticated can manage projects" on public.projects;
+create policy "authenticated can manage projects"
+  on public.projects for all to authenticated
+  using (true)
+  with check (true);
+`;
+
+/**
+ * Busca todos os projetos no Supabase com fallback seguro.
  */
 export async function fetchProjects(): Promise<Project[]> {
   try {
@@ -151,13 +255,22 @@ export async function fetchProjects(): Promise<Project[]> {
       .order("order_index", { ascending: true })
       .order("created_at", { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      return DEFAULT_PROJECTS;
+    // Se a tabela existe e respondeu normalmente (mesmo que com 0 itens cadastrados):
+    if (!error && data) {
+      return data.map((item) => rowToProject(item as ProjectRow));
     }
 
-    return data.map((item) => rowToProject(item as ProjectRow));
+    // Se deu erro (tabela ainda não criada no Supabase - PGRST205):
+    // Usamos os projetos padrões menos os que o usuário já excluiu localmente
+    const deleted = getDeletedProjectIds();
+    const custom = getCustomProjects();
+    const defaultsFiltered = DEFAULT_PROJECTS.filter((p) => !deleted.includes(p.id));
+    return [...custom, ...defaultsFiltered];
   } catch {
-    return DEFAULT_PROJECTS;
+    const deleted = getDeletedProjectIds();
+    const custom = getCustomProjects();
+    const defaultsFiltered = DEFAULT_PROJECTS.filter((p) => !deleted.includes(p.id));
+    return [...custom, ...defaultsFiltered];
   }
 }
 
@@ -243,12 +356,30 @@ export async function saveProject(
 
     if (isUuid && project.id) {
       const { error } = await supabase.from("projects").update(record).eq("id", project.id);
-      if (error) return { success: false, error: error.message };
-      return { success: true };
+      if (!error) return { success: true };
+      if (error.code !== "PGRST205") return { success: false, error: error.message };
+    } else {
+      const { error } = await supabase.from("projects").insert(record);
+      if (!error) return { success: true };
+      if (error.code !== "PGRST205") return { success: false, error: error.message };
     }
 
-    const { error } = await supabase.from("projects").insert(record);
-    if (error) return { success: false, error: error.message };
+    // Se a tabela ainda não foi criada no banco remoto, salva no cache local
+    const localId = project.id || `local-${Date.now()}`;
+    saveCustomProjectLocal({
+      id: localId,
+      title: project.title,
+      slug,
+      category: project.category,
+      contentType: project.contentType,
+      description: project.description,
+      fileUrl: project.fileUrl,
+      externalUrl: project.externalUrl,
+      coverUrl: project.coverUrl,
+      tags: project.tags || [],
+      isFeatured: project.isFeatured,
+      orderIndex: project.orderIndex,
+    });
     return { success: true };
   } catch (err) {
     return { success: false, error: (err as Error).message };
@@ -260,6 +391,9 @@ export async function saveProject(
  */
 export async function deleteProject(id: string): Promise<{ success: boolean; error?: string }> {
   try {
+    // 1. Marca imediatamente no localStorage para garantir que nunca mais volte no fallback
+    addDeletedProjectId(id);
+
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
     if (!isUuid) {
       return { success: true };
@@ -267,7 +401,11 @@ export async function deleteProject(id: string): Promise<{ success: boolean; err
 
     const supabase = getSupabaseClient();
     const { error } = await supabase.from("projects").delete().eq("id", id);
-    if (error) return { success: false, error: error.message };
+    if (error) {
+      // Se a tabela não existe ainda no Supabase, a exclusão local já foi feita
+      if (error.code === "PGRST205") return { success: true };
+      return { success: false, error: error.message };
+    }
     return { success: true };
   } catch (err) {
     return { success: false, error: (err as Error).message };

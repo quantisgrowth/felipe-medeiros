@@ -975,3 +975,4 @@ export function ProjectContentRenderer({ project, settings, onClose }: DemoProps
     </div>
   );
 }
+

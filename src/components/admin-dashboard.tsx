@@ -1,6 +1,16 @@
 import { DEFAULT_ROLES, DEFAULT_SEGMENTS, normalizeOptions } from "@/lib/form-options";
 import { useNavigate } from "@tanstack/react-router";
-import { ExternalLink, FileText, LogOut, Pencil, Plus, Trash2, UploadCloud } from "lucide-react";
+import {
+  AlertTriangle,
+  Copy,
+  ExternalLink,
+  FileText,
+  LogOut,
+  Pencil,
+  Plus,
+  Trash2,
+  UploadCloud,
+} from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -13,6 +23,8 @@ import type { CroppedImageVariants } from "@/lib/image-crop";
 import { getSupabaseClient } from "@/lib/supabase";
 import { settingsToRow, type SiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site-settings";
 import {
+  checkProjectsTableExists,
+  CREATE_PROJECTS_TABLE_SQL,
   deleteProject,
   fetchProjects,
   saveProject,
@@ -1082,6 +1094,8 @@ function ProjectsManager() {
   const [openModal, setOpenModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [tableExists, setTableExists] = useState<boolean | null>(null);
+  const [showSqlModal, setShowSqlModal] = useState(false);
 
   // Form states
   const [title, setTitle] = useState("");
@@ -1098,6 +1112,8 @@ function ProjectsManager() {
     setLoading(true);
     const data = await fetchProjects();
     setProjects(data);
+    const exists = await checkProjectsTableExists();
+    setTableExists(exists);
     setLoading(false);
   }
 
@@ -1231,6 +1247,30 @@ function ProjectsManager() {
           <Plus className="size-4" /> Novo Projeto / Material
         </Button>
       </div>
+
+      {/* Alerta caso a tabela no Supabase ainda não tenha sido criada */}
+      {tableExists === false && (
+        <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-900 dark:text-amber-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span className="font-bold flex items-center gap-1.5 text-sm text-amber-800 dark:text-amber-200">
+              <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
+              Sincronização com Supabase pendente
+            </span>
+            <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+              Suas exclusões e edições estão funcionando neste navegador. Para salvar de forma permanente no banco de dados para todos os visitantes do site, execute o script SQL de 1 clique no Supabase.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSqlModal(true)}
+            className="shrink-0 text-xs font-bold border-amber-500/40 hover:bg-amber-500/20"
+          >
+            Ver Script SQL
+          </Button>
+        </div>
+      )}
 
       {/* Listagem */}
       {loading ? (
@@ -1450,6 +1490,60 @@ function ProjectsManager() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog com o Script SQL do Supabase */}
+      <Dialog open={showSqlModal} onOpenChange={setShowSqlModal}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Instalar Tabela 'projects' no Supabase</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-xs mt-2">
+            <p className="text-muted-foreground leading-relaxed">
+              Para persistir seus projetos, edições e arquivos diretamente no banco de dados do Supabase na nuvem, basta rodar o comando abaixo:
+            </p>
+            <ol className="list-decimal list-inside space-y-1.5 font-semibold text-foreground">
+              <li>Clique no botão abaixo para abrir o SQL Editor do seu projeto Supabase.</li>
+              <li>Cole o código SQL e clique no botão verde <strong>Run</strong>.</li>
+              <li>Recarregue o painel. Pronto!</li>
+            </ol>
+
+            <div>
+              <Button asChild variant="outline" size="sm" className="gap-1.5 text-xs">
+                <a
+                  href="https://supabase.com/dashboard/project/cnstabbralxsvftsvxug/sql/new"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ExternalLink className="size-3.5" /> Abrir SQL Editor do Supabase
+                </a>
+              </Button>
+            </div>
+
+            <div className="relative">
+              <pre className="p-3 bg-muted rounded-lg font-mono text-[11px] overflow-x-auto max-h-56 text-foreground border border-border">
+                {CREATE_PROJECTS_TABLE_SQL}
+              </pre>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(CREATE_PROJECTS_TABLE_SQL);
+                  toast.success("Script SQL copiado!");
+                }}
+                className="absolute top-2 right-2 button-gold gap-1 text-[11px] h-7 px-2.5"
+              >
+                <Copy className="size-3" /> Copiar SQL
+              </Button>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button type="button" onClick={() => setShowSqlModal(false)}>
+                Fechar
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
