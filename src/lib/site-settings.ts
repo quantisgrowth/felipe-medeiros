@@ -207,7 +207,7 @@ function validateLeadPayload(data: unknown): LeadPayload {
     segment: textField("segment", 100, true),
     monthlyLeads: textField("monthlyLeads", 100, true),
     teamSize: textField("teamSize", 100, true),
-    mainChallenge: textField("mainChallenge", 2000, true),
+    mainChallenge: textField("mainChallenge", 2000, false) || "Não detalhado",
     tools,
     source: textField("source", 100),
     pageUrl: textField("pageUrl", 2000),

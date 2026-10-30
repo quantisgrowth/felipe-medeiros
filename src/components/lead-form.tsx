@@ -15,11 +15,23 @@ function trackFormEvent(event: AnalyticsEvent, detail: Record<string, unknown> =
   }
 }
 
+const COMMON_CHALLENGES = [
+  "Leads demorando para serem respondidos",
+  "Follow-ups e retornos esquecidos",
+  "Conversas espalhadas no WhatsApp da equipe",
+  "Falta de visibilidade e métricas do funil",
+  "Processo comercial sem padrão",
+  "Dificuldade em qualificar oportunidades",
+] as const;
+
 export function LeadForm() {
   const settings = useSiteSettings();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [country, setCountry] = useState("BR");
+  const [phone, setPhone] = useState("");
+  const [selectedChallenges, setSelectedChallenges] = useState<string[]>([]);
+  const [customChallenge, setCustomChallenge] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [slow, setSlow] = useState(false);
   const [consent, setConsent] = useState(false);
@@ -42,6 +54,18 @@ export function LeadForm() {
     if (status === "success") successRef.current?.focus();
   }, [status]);
 
+  function formatPhoneInput(value: string, currentCountry: string) {
+    const raw = value.replace(/\D/g, "");
+    if (currentCountry === "BR") {
+      const d = raw.slice(0, 11);
+      if (d.length <= 2) return d ? `(${d}` : "";
+      if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+      if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+      return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+    }
+    return raw.slice(0, 15);
+  }
+
   function changeStep(next: number) {
     setStep(next);
     setStatus("idle");
@@ -51,14 +75,14 @@ export function LeadForm() {
     });
   }
   function validateContact() {
-    const phone = formRef.current?.elements.namedItem("whatsapp") as HTMLInputElement | null;
-    if (phone)
-      phone.setCustomValidity(
-        internationalPhone(country, phone.value)
+    const phoneEl = formRef.current?.elements.namedItem("whatsapp") as HTMLInputElement | null;
+    if (phoneEl)
+      phoneEl.setCustomValidity(
+        internationalPhone(country, phone)
           ? ""
           : country === "BR"
-            ? "Informe o DDD e o número, com 10 ou 11 dígitos, sem o +55."
-            : "Informe o número local, sem o código do país (6 a 15 dígitos no total com DDI).",
+            ? "Informe o DDD e o número completo (ex: (11) 99999-9999)."
+            : "Informe o número local válido, sem o DDI (6 a 15 dígitos no total).",
       );
     const controls = firstRef.current?.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
       "input, select",
@@ -86,6 +110,11 @@ export function LeadForm() {
     trackFormEvent("diagnostic_form_submit");
     const data = new FormData(form);
     const utm = getStoredUtms();
+    const challengeText = [
+      ...selectedChallenges,
+      customChallenge.trim(),
+    ].filter(Boolean).join("; ") || "Não detalhado";
+
     try {
       await submitLead({
         data: {
@@ -93,11 +122,11 @@ export function LeadForm() {
           company: String(data.get("company") ?? "").trim(),
           role: String(data.get("role") ?? ""),
           email: String(data.get("email") ?? "").trim(),
-          whatsapp: internationalPhone(country, String(data.get("whatsapp") ?? ""))!,
+          whatsapp: internationalPhone(country, phone)!,
           segment: String(data.get("segment") ?? ""),
           monthlyLeads: String(data.get("monthly_leads") ?? ""),
           teamSize: String(data.get("team_size") ?? ""),
-          mainChallenge: String(data.get("main_challenge") ?? "").trim(),
+          mainChallenge: challengeText,
           tools: data.getAll("tools").map(String),
           source: "landing-page-diagnostico",
           pageUrl: window.location.href,
@@ -245,11 +274,13 @@ export function LeadForm() {
                       id="lead-country"
                       value={country}
                       onChange={(e) => {
-                        setCountry(e.target.value);
-                        const phone = formRef.current?.elements.namedItem(
+                        const newCountry = e.target.value;
+                        setCountry(newCountry);
+                        setPhone(formatPhoneInput(phone, newCountry));
+                        const phoneEl = formRef.current?.elements.namedItem(
                           "whatsapp",
                         ) as HTMLInputElement;
-                        phone?.setCustomValidity("");
+                        phoneEl?.setCustomValidity("");
                       }}
                       className="w-24 shrink-0 rounded-l-lg border-r border-input bg-surface px-2 text-sm"
                       autoComplete="country"
@@ -267,9 +298,14 @@ export function LeadForm() {
                       inputMode="tel"
                       autoComplete="tel-national"
                       required
+                      value={phone}
+                      onChange={(e) => {
+                        const formatted = formatPhoneInput(e.target.value, country);
+                        setPhone(formatted);
+                        e.target.setCustomValidity("");
+                      }}
                       maxLength={22}
                       aria-describedby="phone-hint"
-                      onInput={(e) => e.currentTarget.setCustomValidity("")}
                       placeholder={country === "BR" ? "(11) 99999-9999" : "Número local"}
                       className="min-w-0 flex-1 rounded-r-lg bg-transparent px-3 outline-none"
                     />
@@ -334,14 +370,51 @@ export function LeadForm() {
                   ))}
                 </div>
               </fieldset>
-              <label className="mt-6 block">
-                <span className="form-label">Principais desafios</span>
+              <fieldset className="mt-6">
+                <legend className="form-label">
+                  Principais desafios da sua operação
+                </legend>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Selecione os pontos que mais travam suas vendas hoje (ou descreva abaixo):
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {COMMON_CHALLENGES.map((challenge) => {
+                    const active = selectedChallenges.includes(challenge);
+                    return (
+                      <button
+                        key={challenge}
+                        type="button"
+                        onClick={() => {
+                          setSelectedChallenges((prev) =>
+                            prev.includes(challenge)
+                              ? prev.filter((c) => c !== challenge)
+                              : [...prev, challenge],
+                          );
+                        }}
+                        className={`cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+                          active
+                            ? "border-gold bg-gold/20 text-foreground font-bold shadow-xs"
+                            : "border-border bg-background text-muted-foreground hover:border-gold/60 hover:text-foreground"
+                        }`}
+                      >
+                        {active ? "✓ " : "+ "}
+                        {challenge}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+              <label className="mt-4 block">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Outro desafio ou observação adicional (opcional)
+                </span>
                 <textarea
-                  name="main_challenge"
-                  required
-                  minLength={10}
+                  name="main_challenge_custom"
+                  value={customChallenge}
+                  onChange={(e) => setCustomChallenge(e.target.value)}
                   maxLength={1200}
-                  rows={4}
+                  rows={3}
+                  placeholder="Ex: Queremos integrar com nosso sistema atual, estruturar metas da equipe..."
                   className="form-control h-auto resize-y py-3"
                 />
               </label>

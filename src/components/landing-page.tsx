@@ -288,7 +288,7 @@ export function Header() {
   }, []);
   return (
     <header className={`site-header ${scrolled ? "is-scrolled" : ""}`}>
-      <div className="container-shell grid h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 xl:grid-cols-[auto_1fr_auto]">
+      <div className="container-shell grid h-16 sm:h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 xl:grid-cols-[auto_1fr_auto]">
         <a href="/#inicio" className="min-w-0" aria-label="Felipe Medeiros — início">
           <span className="block truncate text-base font-bold text-inverse">Felipe Medeiros</span>
           <span className="block truncate text-[10px] font-semibold uppercase text-inverse-muted">
@@ -365,7 +365,7 @@ export function Hero() {
       <div className="hero-wordmark" aria-hidden="true">
         ESTRATÉGIA
       </div>
-      <div className="container-shell relative grid items-start gap-12 pb-14 pt-28 lg:min-h-[680px] lg:grid-cols-[1.08fr_.92fr] lg:pb-16 lg:pt-28">
+      <div className="container-shell relative grid items-start gap-12 pb-14 pt-24 sm:pt-28 lg:min-h-[680px] lg:grid-cols-[1.08fr_.92fr] lg:pb-16 lg:pt-28">
         <div className="relative z-10 max-w-3xl">
           <p className="eyebrow">Consultoria comercial • Treinamento • Automação</p>
           <h1 className="page-title text-inverse">
@@ -934,13 +934,31 @@ export function Footer() {
 }
 export function FloatingWhatsApp() {
   const settings = useSiteSettings();
+  const [hide, setHide] = useState(false);
+
+  useEffect(() => {
+    const target = document.getElementById("diagnostico");
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHide(Boolean(entry?.isIntersecting));
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <a
       href={getWhatsAppUrl(settings)}
       target="_blank"
       rel="noreferrer"
       onClick={() => trackEvent("cta_whatsapp_click", { label: "floating" })}
-      className="fixed bottom-5 right-5 z-40 grid size-14 place-items-center rounded-full bg-whatsapp text-inverse shadow-xl transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring"
+      className={`fixed bottom-5 right-5 z-40 grid size-14 place-items-center rounded-full bg-whatsapp text-inverse shadow-xl transition-all duration-300 hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring ${
+        hide ? "pointer-events-none translate-y-24 opacity-0" : "translate-y-0 opacity-100"
+      }`}
       aria-label="Falar com Felipe no WhatsApp"
     >
       <MessageCircle className="size-6" />
