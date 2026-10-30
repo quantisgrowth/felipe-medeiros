@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/lib/site-settings-context";
 import { getWhatsAppUrl } from "@/lib/site-settings";
 import { trackEvent } from "@/lib/analytics";
+import { ProjectContentRenderer } from "@/components/project-demos";
 import {
   DEFAULT_PROJECTS,
   fetchProjects,
@@ -274,106 +275,85 @@ export function ProjectsPage() {
           </div>
         </section>
 
-        {/* Modal de Visualização do Projeto (PDF ou Ferramenta Interativa) */}
+        {/* Modal Responsivo de Visualização do Projeto (PC e Mobile) */}
         {activeProject && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 md:p-6 animate-in fade-in duration-200"
             onClick={() => setActiveProject(null)}
           >
             <div
-              className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl"
+              className="relative flex flex-col w-full h-full sm:h-[90vh] sm:max-h-[920px] sm:max-w-6xl rounded-none sm:rounded-2xl bg-background border-0 sm:border sm:border-border shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-inverse/10 bg-primary px-6 py-4 text-inverse">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gold-light">
-                    {activeProject.contentType === "pdf" ? "Material em PDF" : "Demonstração Interativa"}
-                  </span>
-                  <h2 className="text-lg font-bold sm:text-xl">{activeProject.title}</h2>
+              <div className="flex items-center justify-between border-b border-inverse/10 bg-primary px-4 sm:px-6 py-3.5 text-inverse shrink-0">
+                <div className="min-w-0 pr-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gold-light">
+                      {activeProject.contentType === "pdf" ? "Material em PDF" : "Demonstração Interativa"}
+                    </span>
+                    {activeProject.isFeatured && (
+                      <span className="text-[10px] font-bold text-gold-light/90 hidden sm:inline-flex items-center gap-1">
+                        • Destaque
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-base sm:text-lg md:text-xl font-bold truncate text-inverse">
+                    {activeProject.title}
+                  </h2>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveProject(null)}
-                  className="rounded-lg p-1.5 text-inverse-muted transition-colors hover:bg-inverse/10 hover:text-inverse"
-                  aria-label="Fechar"
-                >
-                  <X className="size-6" />
-                </button>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {(activeProject.fileUrl || activeProject.externalUrl) && (
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="text-inverse-muted hover:text-inverse hover:bg-inverse/10 text-xs hidden sm:inline-flex gap-1.5"
+                    >
+                      <a
+                        href={activeProject.fileUrl || activeProject.externalUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink className="size-3.5" /> Abrir em nova aba
+                      </a>
+                    </Button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setActiveProject(null)}
+                    className="rounded-lg p-1.5 text-inverse-muted transition-colors hover:bg-inverse/10 hover:text-inverse cursor-pointer"
+                    aria-label="Fechar"
+                  >
+                    <X className="size-6" />
+                  </button>
+                </div>
               </div>
 
-              {/* Modal Body */}
-              <div className="flex-1 overflow-y-auto p-6">
-                {activeProject.contentType === "pdf" ? (
-                  <div className="space-y-5 text-center">
-                    {activeProject.fileUrl ? (
-                      <div className="aspect-[4/3] w-full overflow-hidden rounded-xl border border-border bg-muted">
-                        <iframe
-                          src={`${activeProject.fileUrl}#toolbar=0`}
-                          title={activeProject.title}
-                          className="size-full border-0"
-                        />
-                      </div>
-                    ) : (
-                      <div className="rounded-xl border border-dashed border-border bg-muted/40 p-10">
-                        <FileText className="mx-auto size-16 text-gold" />
-                        <h3 className="mt-4 text-xl font-bold">{activeProject.title}</h3>
-                        <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-                          {activeProject.description}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                      {activeProject.fileUrl && (
-                        <Button asChild variant="outline" className="gap-2">
-                          <a href={activeProject.fileUrl} download target="_blank" rel="noreferrer">
-                            <Download className="size-4" /> Baixar PDF
-                          </a>
-                        </Button>
-                      )}
-                      <Button asChild className="button-gold gap-2">
-                        <a
-                          href={`https://wa.me/${settings.whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(
-                            `Olá Felipe, vi o material "${activeProject.title}" no seu site e gostaria de conversar sobre a aplicação na minha empresa.`,
-                          )}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <MessageCircle className="size-4" /> Falar com Felipe sobre este material
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">{activeProject.description}</p>
-                    <div className="aspect-[16/10] w-full overflow-hidden rounded-xl border border-border bg-muted">
-                      <iframe
-                        src={activeProject.fileUrl || "/projetos-showcase.html"}
-                        title={activeProject.title}
-                        className="size-full border-0"
-                        sandbox="allow-scripts allow-forms allow-same-origin"
-                      />
-                    </div>
-                  </div>
-                )}
+              {/* Modal Body: Adaptável a PC e Mobile, sem aspecto quadrado fixo */}
+              <div className="flex-1 min-h-0 overflow-y-auto bg-surface p-4 sm:p-6 flex flex-col">
+                <ProjectContentRenderer
+                  project={activeProject}
+                  settings={settings}
+                  onClose={() => setActiveProject(null)}
+                />
               </div>
 
               {/* Modal Footer CTA */}
-              <div className="flex flex-col items-center justify-between gap-3 border-t border-border bg-surface px-6 py-4 sm:flex-row">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4 border-t border-border bg-background px-4 sm:px-6 py-3 shrink-0">
                 <p className="text-xs text-muted-foreground text-center sm:text-left">
-                  Gostaria de estruturar uma solução personalizada como essa na sua empresa?
+                  Quer estruturar uma solução personalizada como essa na sua empresa?
                 </p>
-                <Button asChild size="sm" className="button-gold shrink-0">
+                <Button asChild size="sm" className="button-gold shrink-0 text-xs font-bold gap-1.5">
                   <a
                     href={`https://wa.me/${settings.whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(
-                      `Olá Felipe, estive olhando o projeto "${activeProject.title}" e gostaria de tirar uma dúvida.`,
+                      `Olá Felipe, estive olhando o projeto "${activeProject.title}" e gostaria de conversar.`,
                     )}`}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <MessageCircle className="size-4" /> Conversar no WhatsApp
+                    <MessageCircle className="size-3.5" /> Conversar no WhatsApp
                   </a>
                 </Button>
               </div>
@@ -417,3 +397,4 @@ export function ProjectsPage() {
     </>
   );
 }
+

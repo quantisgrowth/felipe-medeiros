@@ -53,7 +53,7 @@ export const DEFAULT_PROJECTS: Project[] = [
       "Simulador interativo de perdas de vendas causadas por demora no primeiro atendimento e falhas no follow-up.",
     category: "diagnostico",
     contentType: "html",
-    fileUrl: "/projetos-showcase.html",
+    fileUrl: "",
     tags: ["Simulação", "Tempo Real", "Diagnóstico Financeiro"],
     isFeatured: true,
   },
@@ -65,7 +65,7 @@ export const DEFAULT_PROJECTS: Project[] = [
       "Estrutura de agente inteligente para atendimento inicial, coleta de faturamento e roteamento de oportunidades.",
     category: "ia",
     contentType: "html",
-    fileUrl: "/projetos-showcase.html",
+    fileUrl: "",
     tags: ["GPT Maker", "WhatsApp API", "n8n"],
     isFeatured: true,
   },
@@ -89,7 +89,7 @@ export const DEFAULT_PROJECTS: Project[] = [
       "Questionário que classifica a operação comercial entre os 4 níveis de maturidade (do artesanal ao inteligente).",
     category: "diagnostico",
     contentType: "html",
-    fileUrl: "/projetos-showcase.html",
+    fileUrl: "",
     tags: ["Assessment", "Processos", "Gestão"],
     isFeatured: false,
   },
@@ -101,7 +101,7 @@ export const DEFAULT_PROJECTS: Project[] = [
       "Fluxo operacional de captura de contatos, criação de negócios no CRM e notificação instantânea para os vendedores.",
     category: "crm",
     contentType: "html",
-    fileUrl: "/projetos-showcase.html",
+    fileUrl: "",
     tags: ["DataCrazy", "n8n", "Webhooks"],
     isFeatured: false,
   },
@@ -113,7 +113,7 @@ export const DEFAULT_PROJECTS: Project[] = [
       "Arquitetura de página de captura de alta performance com formulário qualificado, rastreamento de UTMs e disparo para CRM.",
     category: "web",
     contentType: "html",
-    fileUrl: "/projetos-showcase.html",
+    fileUrl: "",
     tags: ["Vite / React", "Tailwind CSS", "Supabase"],
     isFeatured: false,
   },
@@ -206,7 +206,9 @@ export async function uploadProjectFile(
 /**
  * Salva ou atualiza um projeto no banco.
  */
-export async function saveProject(project: Omit<Project, "id"> & { id?: string }): Promise<{ success: boolean; error?: string }> {
+export async function saveProject(
+  project: Omit<Project, "id"> & { id?: string | undefined },
+): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = getSupabaseClient();
     const slug =
@@ -234,7 +236,12 @@ export async function saveProject(project: Omit<Project, "id"> & { id?: string }
       updated_at: new Date().toISOString(),
     };
 
-    if (project.id) {
+    const isUuid = Boolean(
+      project.id &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(project.id),
+    );
+
+    if (isUuid && project.id) {
       const { error } = await supabase.from("projects").update(record).eq("id", project.id);
       if (error) return { success: false, error: error.message };
       return { success: true };
@@ -253,6 +260,11 @@ export async function saveProject(project: Omit<Project, "id"> & { id?: string }
  */
 export async function deleteProject(id: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    if (!isUuid) {
+      return { success: true };
+    }
+
     const supabase = getSupabaseClient();
     const { error } = await supabase.from("projects").delete().eq("id", id);
     if (error) return { success: false, error: error.message };
@@ -261,3 +273,4 @@ export async function deleteProject(id: string): Promise<{ success: boolean; err
     return { success: false, error: (err as Error).message };
   }
 }
+

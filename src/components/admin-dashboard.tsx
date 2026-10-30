@@ -1,6 +1,6 @@
 import { DEFAULT_ROLES, DEFAULT_SEGMENTS, normalizeOptions } from "@/lib/form-options";
 import { useNavigate } from "@tanstack/react-router";
-import { ExternalLink, FileText, LogOut, Plus, Trash2, UploadCloud } from "lucide-react";
+import { ExternalLink, FileText, LogOut, Pencil, Plus, Trash2, UploadCloud } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -1081,6 +1081,7 @@ function ProjectsManager() {
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form states
   const [title, setTitle] = useState("");
@@ -1103,6 +1104,36 @@ function ProjectsManager() {
   useEffect(() => {
     load();
   }, []);
+
+  function resetForm() {
+    setEditingId(null);
+    setTitle("");
+    setCategory("diagnostico");
+    setContentType("pdf");
+    setDescription("");
+    setTagsStr("");
+    setFileUrl("");
+    setExternalUrl("");
+    setIsFeatured(false);
+  }
+
+  function handleOpenNew() {
+    resetForm();
+    setOpenModal(true);
+  }
+
+  function handleEdit(project: Project) {
+    setEditingId(project.id);
+    setTitle(project.title);
+    setCategory(project.category);
+    setContentType(project.contentType);
+    setDescription(project.description);
+    setTagsStr(project.tags.join(", "));
+    setFileUrl(project.fileUrl || "");
+    setExternalUrl(project.externalUrl || "");
+    setIsFeatured(Boolean(project.isFeatured));
+    setOpenModal(true);
+  }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -1153,6 +1184,7 @@ function ProjectsManager() {
       .slice(0, 60);
 
     const res = await saveProject({
+      ...(editingId ? { id: editingId } : {}),
       title,
       slug,
       category,
@@ -1169,21 +1201,10 @@ function ProjectsManager() {
       return;
     }
 
-    toast.success("Projeto salvo e publicado com sucesso!");
+    toast.success(editingId ? "Projeto atualizado com sucesso!" : "Projeto salvo e publicado com sucesso!");
     setOpenModal(false);
     resetForm();
     load();
-  }
-
-  function resetForm() {
-    setTitle("");
-    setCategory("diagnostico");
-    setContentType("pdf");
-    setDescription("");
-    setTagsStr("");
-    setFileUrl("");
-    setExternalUrl("");
-    setIsFeatured(false);
   }
 
   async function handleDelete(id: string, projectTitle: string) {
@@ -1206,7 +1227,7 @@ function ProjectsManager() {
             Suba relatórios em PDF, calculadoras interativas ou ferramentas de IA para exibir na página de Projetos do seu site.
           </p>
         </div>
-        <Button onClick={() => setOpenModal(true)} className="button-gold gap-2 shrink-0">
+        <Button onClick={handleOpenNew} className="button-gold gap-2 shrink-0">
           <Plus className="size-4" /> Novo Projeto / Material
         </Button>
       </div>
@@ -1252,8 +1273,17 @@ function ProjectsManager() {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => handleEdit(p)}
+                  className="gap-1.5 text-xs text-foreground hover:bg-muted"
+                >
+                  <Pencil className="size-3.5" /> Editar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleDelete(p.id, p.title)}
                   className="text-destructive hover:bg-destructive/10 text-xs"
+                  title="Excluir projeto"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -1263,11 +1293,19 @@ function ProjectsManager() {
         </div>
       )}
 
-      {/* Dialog para Adicionar */}
-      <Dialog open={openModal} onOpenChange={setOpenModal}>
+      {/* Dialog para Adicionar ou Editar */}
+      <Dialog
+        open={openModal}
+        onOpenChange={(isOpen) => {
+          setOpenModal(isOpen);
+          if (!isOpen) resetForm();
+        }}
+      >
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Adicionar Novo Projeto / Material</DialogTitle>
+            <DialogTitle>
+              {editingId ? "Editar Projeto / Material" : "Adicionar Novo Projeto / Material"}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveProject} className="space-y-4 mt-2">
             <div>
@@ -1318,7 +1356,7 @@ function ProjectsManager() {
             {contentType !== "link" ? (
               <div>
                 <Label>Upload do Arquivo ({contentType.toUpperCase()})</Label>
-                <div className="mt-1 flex items-center gap-3">
+                <div className="mt-1 flex flex-col gap-2">
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -1337,15 +1375,24 @@ function ProjectsManager() {
                     {uploading
                       ? "Enviando arquivo para o servidor..."
                       : fileUrl
-                        ? "Arquivo selecionado! (Clique para trocar)"
+                        ? "Substituir arquivo selecionado"
                         : `Clique para selecionar arquivo .${contentType}`}
                   </Button>
+                  {fileUrl && (
+                    <div className="flex items-center justify-between rounded-md border border-border bg-muted/50 px-3 py-2 text-xs">
+                      <span className="truncate max-w-[280px] text-muted-foreground font-mono">
+                        {fileUrl}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setFileUrl("")}
+                        className="text-[11px] font-semibold text-destructive hover:underline ml-2 shrink-0"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {fileUrl && (
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1 truncate">
-                    ✓ Arquivo pronto: {fileUrl}
-                  </p>
-                )}
               </div>
             ) : (
               <div>
@@ -1399,7 +1446,7 @@ function ProjectsManager() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={uploading} className="button-gold">
-                Salvar e Publicar
+                {editingId ? "Salvar Alterações" : "Salvar e Publicar"}
               </Button>
             </div>
           </form>
